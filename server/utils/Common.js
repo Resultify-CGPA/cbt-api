@@ -25,7 +25,7 @@ exports.getFreshUser = (Model) => {
     try {
       const user = await Model.findOne({
         status: true,
-        _id: req.user.data._id,
+        // _id: req.user.data._id,
       });
       if (!user) {
         exports.error_out({

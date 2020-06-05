@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const UsersSchema = new Schema({
   matric: {
     type: String,
+    unique: true,
     required: true,
   },
   password: {
@@ -23,6 +24,41 @@ const UsersSchema = new Schema({
     type: String,
     required: true,
   },
+  exams: [
+    {
+      exam_id: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: "exams",
+      },
+      sheduledfor: {
+        type: Number,
+        required: true,
+      },
+      submitted: {
+        type: Boolean,
+        default: false,
+        required: true,
+      },
+      time_start: {
+        type: Number,
+        default: Date.now(),
+      },
+      time_end: {
+        type: Number,
+        default: Date.now(),
+      },
+      in_progress: {
+        type: Boolean,
+        default: false,
+      },
+      answered: [{ type: Number }],
+      passed: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
 });
 
 UsersSchema.pre("save", async function (next) {
