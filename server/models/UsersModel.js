@@ -25,9 +25,10 @@ const UsersSchema = new Schema({
   },
 });
 
-UsersSchema.pre("save", async (next) => {
+UsersSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   try {
+    this.matric = this.matric.toLowerCase();
     this.password = await this.encryptPassword(this.password);
     return next();
   } catch (err) {
@@ -36,7 +37,7 @@ UsersSchema.pre("save", async (next) => {
 });
 
 UsersSchema.methods = {
-  authenticate: async (plainTextPassword) => {
+  authenticate: async function (plainTextPassword) {
     return await new Promise((resolve, reject) => {
       bcrypt.compare(plainTextPassword, this.password, (err, hash) => {
         if (err) return reject(err);
@@ -44,7 +45,7 @@ UsersSchema.methods = {
       });
     });
   },
-  encryptPassword: async (plainTextPassword) => {
+  encryptPassword: async function (plainTextPassword) {
     if (!plainTextPassword) return "";
     try {
       const salt = await new Promise((resolve, reject) => {
@@ -63,7 +64,7 @@ UsersSchema.methods = {
       throw err;
     }
   },
-  toJson: () => {
+  toJson: function () {
     const userObject = this.toObject();
     delete userObject.password;
     return userObject;
