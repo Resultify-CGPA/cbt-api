@@ -14,7 +14,7 @@ app.get("/", (req, res) => {
 });
 
 //DB Seeding
-// if (config.seed) require("./utils/seed");
+require("./utils/DBSeeder");
 
 //Middleware stack
 // require("./middleware/appMiddleware")(app);
