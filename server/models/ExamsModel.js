@@ -17,6 +17,10 @@ const ExamsModel = new Schema({
     type: Number,
     required: true,
   },
+  instructions: {
+    type: String,
+    required: true,
+  },
   created_at: {
     required: true,
     type: Number,

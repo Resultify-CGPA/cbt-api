@@ -24,6 +24,66 @@ const UsersSchema = new Schema({
     type: String,
     required: true,
   },
+  exam: {
+    exam_id: {
+      type: Schema.Types.ObjectId,
+    },
+    instructions: {
+      type: String,
+    },
+    title: {
+      type: String,
+    },
+    time_start: {
+      type: Number,
+      default: Date.now(),
+    },
+    answered: [
+      {
+        question: { type: Schema.Types.ObjectId },
+        answer: String,
+      },
+    ],
+    time_allowed: Number,
+    in_progress: {
+      type: Boolean,
+      default: false,
+    },
+    questions: [
+      {
+        type: {
+          type: Boolean,
+          default: true,
+        },
+        question: {
+          type: String,
+          required: true,
+        },
+        options: {
+          a: {
+            type: String,
+            required: true,
+          },
+          b: {
+            type: String,
+            required: true,
+          },
+          c: {
+            type: String,
+            required: true,
+          },
+          d: {
+            type: String,
+            required: true,
+          },
+        },
+      },
+    ],
+  },
+  name: {
+    required: true,
+    type: String,
+  },
   exams: [
     {
       exam_id: {
@@ -40,23 +100,16 @@ const UsersSchema = new Schema({
         default: false,
         required: true,
       },
-      time_start: {
-        type: Number,
-        default: Date.now(),
-      },
-      time_end: {
-        type: Number,
-        default: Date.now(),
-      },
       in_progress: {
         type: Boolean,
         default: false,
       },
-      answered: [{ type: Number }],
-      passed: {
-        type: Number,
-        default: 0,
-      },
+      answers: [
+        {
+          question: { type: Schema.Types.ObjectId },
+          answer: String,
+        },
+      ],
     },
   ],
 });
