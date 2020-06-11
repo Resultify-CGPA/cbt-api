@@ -1,28 +1,27 @@
-# TEAM-SUPERMAN
+# Computer Based Test API
 
-## A dockerized micro-service for subscribing for and sending newsletters
+## An API for computer based test applications
 
 ## Pre-Requisites
 
-- MongoDB and database created
+- MongoDB
 
 ## How to Install and run the application
 
-- Clone the application and run `yarn install`
-- Run `cp .env.example .env` to create the .env variables and fill them
-- Run `yarn run start:dev` to start development server
+- Clone the application and run `npm install`
+- Run `cp .env.example .env` to create the .env variables and fill them with required information
+- Run `npm run start:dev` to start development server
 
 ## API Documentation
 
-- [Swagger Documentation on Heroku]()
+- [Swagger Documentation]()
 
 ## Technologies Used
 
 - NodeJS / Express
 - Mongo Database
 - Swagger for API Documentation
-- Heroku For Hosting
 
 ## Contributors
 
-- [Omomurewa George-Ashiru](https://github.com/murewaashiru)
+- [Emmanuel Menyaga (mhizterkeyz)](https://github.com/mhizterkeyz)
