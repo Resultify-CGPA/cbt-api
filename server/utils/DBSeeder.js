@@ -30,6 +30,7 @@ const chalk = require("chalk");
           password: "password",
           department: "mathematical sciences",
           faculty: "natural sciences",
+          name: "Alikali Ojonugwa Justice",
         },
       ].map(async (user) => {
         return await UsersModel.create(user);
@@ -54,6 +55,8 @@ const chalk = require("chalk");
           created_at: Date.now(),
           updated_at: Date.now(),
           questions_per_student: 29,
+          instructions:
+            "Make sure to keep your hands and legs in the vehicle at all times",
           questions: [
             {
               type: true, //true: multichoice, false: freeanswer

@@ -39,7 +39,7 @@ app.use("/user", user_route);
 //Error Handling
 app.use((err, req, res, next) => {
   if (err) {
-    const status = err.status || 500;
+    const status = err.status || err.statusCode || 500;
     console.log(err.message);
     res.status(status).json({
       ...err,
