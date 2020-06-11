@@ -2,14 +2,15 @@ const UsersModel = require("../models/UsersModel");
 const ExamsModel = require("../models/ExamsModel");
 const config = require("../config/config");
 const _ = require("lodash");
+const chalk = require("chalk");
 
 (async (models) => {
   if (!config.seed) return;
 
-  console.log(`
+  console.log(chalk.yellow(`
   ***********************
   *Cleaning the database
-  ***********************`);
+  ***********************`));
 
   try {
     await models.map(async (model) => {
@@ -18,10 +19,10 @@ const _ = require("lodash");
       });
     });
 
-    console.log(`
+    console.log(chalk.blue(`
   ***********************
   *Seeding DB with users
-  ***********************`);
+  ***********************`));
     const users = await Promise.all(
       [
         {
@@ -35,15 +36,15 @@ const _ = require("lodash");
       })
     );
 
-    console.log(`
+    console.log(chalk.green(`
   *************************************
   *DB Seeded with ${users.length} user(s)
-  *************************************`);
+  *************************************`));
 
-    console.log(`
+    console.log(chalk.yellow(`
   ***********************
   *Seeding DB with Exams
-  ***********************`);
+  ***********************`));
     const exams = await Promise.all(
       [
         {
@@ -73,10 +74,10 @@ const _ = require("lodash");
       })
     );
 
-    console.log(`
+    console.log(chalk.green(`
   *************************************
-  *DB Seeded with ${exams.length} exams(s)
-  *************************************`);
+  *DB Seeded with ${exams.length} exam(s)
+  *************************************`));
 
     await Promise.all(
       users.map(async (user) => {
@@ -92,9 +93,9 @@ const _ = require("lodash");
       })
     );
   } catch (err) {
-    console.log(`
+    console.log(chalk.red(`
     *******************************
     *${err.message}
-    *******************************`);
+    *******************************`));
   }
 })([UsersModel, ExamsModel]);
