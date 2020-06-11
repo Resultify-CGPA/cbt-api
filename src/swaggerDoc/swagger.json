@@ -1,0 +1,34 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Newsletter",
+    "description": "A dockerized micro-service for subscribing for and sending newsletters"
+  },
+  "basePath": "/api/v1/",
+  "schemes": ["https", "http"],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000/api/v1"
+    },
+    {
+      "url": ""
+    }
+  ],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "tags": [
+    {
+      "name": "Subscription",
+      "description": "Subscription Endpoints"
+    }
+  ],
+  "paths": {}
+}
