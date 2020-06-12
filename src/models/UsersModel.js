@@ -26,7 +26,7 @@ const UsersSchema = new Schema(
       required: true
     },
     exam: {
-      exam_id: {
+      examId: {
         type: Schema.Types.ObjectId
       },
       instructions: {
@@ -35,7 +35,7 @@ const UsersSchema = new Schema(
       title: {
         type: String
       },
-      time_start: {
+      timeStart: {
         type: Number,
         default: Date.now()
       },
@@ -45,8 +45,8 @@ const UsersSchema = new Schema(
           answer: String
         }
       ],
-      time_allowed: Number,
-      in_progress: {
+      timeAllowed: Number,
+      inProgress: {
         type: Boolean,
         default: false
       },
@@ -87,7 +87,7 @@ const UsersSchema = new Schema(
     },
     exams: [
       {
-        exam_id: {
+        examId: {
           type: Schema.Types.ObjectId,
           required: true,
           ref: 'exams'
@@ -101,7 +101,7 @@ const UsersSchema = new Schema(
           default: false,
           required: true
         },
-        in_progress: {
+        inProgress: {
           type: Boolean,
           default: false
         },

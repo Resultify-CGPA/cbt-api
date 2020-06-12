@@ -14,7 +14,7 @@ const ExamsModel = new Schema(
       type: String,
       required: true
     },
-    time_allowed: {
+    timeAllowed: {
       type: Number,
       required: true
     },
@@ -22,7 +22,7 @@ const ExamsModel = new Schema(
       type: String,
       required: true
     },
-    questions_per_student: {
+    questionsPerStudent: {
       required: true,
       type: Number
     },
