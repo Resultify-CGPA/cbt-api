@@ -18,23 +18,25 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 mongoose
-  .connect(process.env.DATABASE_URL, {
+  .connect(process.env.DATABASE_URL || 'mongodb://localhost/cbt', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false,
     useCreateIndex: true
   })
   .then(() => {
-    console.log('Successfully connected to MongoDB Atlas!');
+    console.log('Connection to DB successful!');
   })
   .catch((err) => {
-    console.log('Unable to connect');
+    console.log('Unable to connect to DB');
     console.log(err);
   });
 
 app.use(routes);
+// eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
   const status = error.status || error.statusCode || 500;
+  // eslint-disable-next-line operator-linebreak
   const stack =
     process.env.NODE_ENV === 'production'
       ? {}

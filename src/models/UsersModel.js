@@ -158,6 +158,8 @@ UsersSchema.methods = {
   },
   toJson: function toJson() {
     const userObject = this.toObject();
+    delete userObject.exam;
+    delete userObject.exams;
     delete userObject.password;
     return userObject;
   }
