@@ -41,7 +41,7 @@ const UsersSchema = new Schema(
       },
       answered: [
         {
-          question: { type: Schema.Types.ObjectId },
+          questionId: { type: Schema.Types.ObjectId },
           answer: String
         }
       ],
@@ -52,6 +52,7 @@ const UsersSchema = new Schema(
       },
       questions: [
         {
+          questionId: Schema.Types.ObjectId,
           type: {
             type: Boolean,
             default: true
@@ -117,7 +118,7 @@ const UsersSchema = new Schema(
   { timestamps: true }
 );
 
-UsersSchema.pre('password', async function preSave(next) {
+UsersSchema.pre('save', async function preSave(next) {
   if (!this.isModified('password')) return next();
   try {
     this.matric = this.matric.toLowerCase();

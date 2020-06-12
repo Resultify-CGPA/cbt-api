@@ -10,5 +10,13 @@ export default {
     .trim()
     .required(),
   username: Joi.string().min(3).required(),
-  password: Joi.string().min(8).required()
+  password: Joi.string().min(8).required(),
+  answers: Joi.array()
+    .items(
+      Joi.object().keys({
+        questionId: Joi.string().required(),
+        answer: Joi.string().required()
+      })
+    )
+    .required()
 };

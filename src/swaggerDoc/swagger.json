@@ -2,11 +2,11 @@
   "swagger": "2.0",
   "info": {
     "version": "1.0.0",
-    "title": "Newsletter",
-    "description": "A dockerized micro-service for subscribing for and sending newsletters"
+    "title": "CBT API",
+    "description": "An API for computer based test application"
   },
   "basePath": "/api/v1/",
-  "schemes": ["https", "http"],
+  "schemes": ["http", "https"],
   "securityDefinitions": {
     "Bearer": {
       "type": "apiKey",
@@ -16,7 +16,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:4000/api/v1"
+      "url": "http://localhost:8000/api/v1"
     },
     {
       "url": ""
@@ -26,9 +26,316 @@
   "produces": ["application/json"],
   "tags": [
     {
-      "name": "Subscription",
-      "description": "Subscription Endpoints"
+      "name": "user",
+      "description": "The user end of the API"
     }
   ],
-  "paths": {}
+  "paths": {
+    "/user/signin": {
+      "post": {
+        "tags": ["user"],
+        "summary": "signs in user to API",
+        "description": "",
+        "operationId": "signIn",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "data to log user with",
+            "required": "true",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signin successful"
+          },
+          "401": {
+            "description": "unauthorized"
+          },
+          "500": {
+            "description": "server error"
+          },
+          "422": {
+            "description": "invalid input"
+          }
+        }
+      }
+    },
+    "/user/exams": {
+      "get": {
+        "tags": ["user"],
+        "summary": "gets the most recent active exam",
+        "description": "",
+        "operationId": "fetchSingleExam",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Returns exam object"
+          },
+          "401": {
+            "description": "unauthorized"
+          },
+          "500": {
+            "description": "server error"
+          },
+          "404": {
+            "description": "no active exam"
+          }
+        },
+        "security": [{ "user_auth": ["read:user", "write:user"] }]
+      },
+      "post": {
+        "tags": ["user"],
+        "summary": "Starts the most recent examination",
+        "description": "",
+        "operationId": "startSingleExam",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": "true"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "exam started"
+          },
+          "401": {
+            "description": "unauthorized"
+          },
+          "500": {
+            "description": "server error"
+          },
+          "404": {
+            "description": "no active exams"
+          }
+        },
+        "security": [{ "user_auth": ["read:user", "write:user"] }]
+      },
+      "put": {
+        "security": [{ "user_auth": ["read:user", "write:user"] }],
+        "tags": ["user"],
+        "summary": "sends answers to examination",
+        "description": "",
+        "operationId": "answerExamination",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "answers",
+            "required": "true",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "answers": {
+                  "type": "array",
+                  "items": {
+                    "questionId": {
+                      "type": "string"
+                    },
+                    "answer": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Answer saved or exam submitted (if user runs out of time)"
+          },
+          "401": {
+            "description": "unauthorized"
+          },
+          "500": {
+            "description": "server error"
+          },
+          "404": {
+            "description": "no active exams"
+          }
+        }
+      },
+      "delete": {
+        "security": [{ "user_auth": ["read:user", "write:user"] }],
+        "tags": ["user"],
+        "summary": "Ends an active examination",
+        "description": "",
+        "operationId": "endExamination",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": "true"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "exam submitted"
+          },
+          "401": {
+            "description": "unauthorized"
+          },
+          "500": {
+            "description": "server error"
+          },
+          "404": {
+            "description": "no active exams"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Users": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "required": "true"
+        },
+        "matric": {
+          "type": "string",
+          "required": "true",
+          "unique": "true"
+        },
+        "password": {
+          "type": "string",
+          "required": "true"
+        },
+        "status": {
+          "type": "boolean",
+          "default": "true"
+        },
+        "department": {
+          "type": "string",
+          "requiured": "true"
+        },
+        "faculty": {
+          "type": "string",
+          "requiured": "true"
+        },
+        "exam": {
+          "type": "object",
+          "properties": {
+            "examId": {
+              "type": "string"
+            },
+            "instructions": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "timeStart": {
+              "type": "number",
+              "default": "current Date"
+            },
+            "inProgress": {
+              "type": "boolean",
+              "default": "false"
+            },
+            "answered": {
+              "type": "array",
+              "items": {
+                "questionId": {
+                  "type": "string"
+                },
+                "answer": {
+                  "type": "string"
+                }
+              }
+            },
+            "questions": {
+              "type": "array",
+              "items": {
+                "questionId": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "boolean"
+                },
+                "question": {
+                  "type": "string"
+                },
+                "options": {
+                  "type": "object",
+                  "properties": {
+                    "a": {
+                      "type": "string"
+                    },
+                    "b": {
+                      "type": "string"
+                    },
+                    "c": {
+                      "type": "string"
+                    },
+                    "d": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "exams": {
+          "type": "array",
+          "items": {
+            "examId": {
+              "type": "string"
+            },
+            "sheduledfor": {
+              "type": "number"
+            },
+            "submitted": {
+              "type": "boolean",
+              "default": "false"
+            },
+            "inProgress": {
+              "type": "boolean",
+              "default": "false"
+            },
+            "answers": {
+              "type": "array",
+              "items": {
+                "questionId": {
+                  "type": "string"
+                },
+                "answer": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "xml": {
+        "name": "Users"
+      }
+    }
+  }
 }

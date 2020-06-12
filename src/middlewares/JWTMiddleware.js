@@ -1,9 +1,5 @@
 import expressJWT from 'express-jwt';
 
-const checkToken = expressJWT({
-  secret: process.env.JWT || 'SomeJuicySecretSetOnEnv'
-});
-
 /** JWT Middleware class */
 class JWT {
   /**
@@ -12,6 +8,9 @@ class JWT {
    */
   static decodeToken() {
     return (req, res, next) => {
+      const checkToken = expressJWT({
+        secret: process.env.JWTSecret || 'SomeJuicySecretSetOnEnv'
+      });
       //  Checks if token was passed on url
       const query = { req };
       // eslint-disable-next-line no-prototype-builtins

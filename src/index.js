@@ -6,6 +6,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import routes from './routes';
+import cleanDb from './seeds/cleanDB';
 
 dotenv.config();
 
@@ -18,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 mongoose
-  .connect(process.env.DATABASE_URL || 'mongodb://localhost/cbt', {
+  .connect(process.env.DATABASE_URL || 'mongodb://localhost/cbt-api', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false,
@@ -32,6 +33,7 @@ mongoose
     console.log(err);
   });
 
+cleanDb();
 app.use(routes);
 // eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
@@ -48,6 +50,13 @@ app.use((error, req, res, next) => {
 });
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log('--------------------');
+  console.log(
+    `Server listening on port ${PORT}.\nGoto http://localhost:${PORT}/api/docs to see documetation`
+  );
+
+  console.log('--------------------');
+});
 
 export default { app };

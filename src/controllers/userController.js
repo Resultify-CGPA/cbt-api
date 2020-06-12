@@ -1,5 +1,5 @@
-import userService from '../services/userService';
 import Response from '../utils/response';
+import UserService from '../services/userService';
 
 /** Class for user controller */
 class UserController {
@@ -12,14 +12,14 @@ class UserController {
       try {
         const { username } = req.body;
         const $or = [{ username }, { email: username }, { matric: username }];
-        const user = await userService.signInUser({
+        const user = await UserService.signInUser({
           $or,
           password: req.body.password
         });
         if (!user) {
           return Response.authenticationError(res, 'invalid credentials');
         }
-        return Response.customResponse(res, 'Signin successful', user);
+        return Response.customResponse(res, 200, 'Signin successful', user);
       } catch (error) {
         return next(error);
       }
@@ -34,7 +34,7 @@ class UserController {
     return async (req, res, next) => {
       try {
         const { _id: id } = req.user.data;
-        const user = await userService.getOneUser(id);
+        const user = await UserService.getOneUser(id);
         if (!user) {
           return Response.authorizationError(res, 'unauthorized');
         }
@@ -53,14 +53,93 @@ class UserController {
   static getExams() {
     return async (req, res, next) => {
       try {
-        const exam = await userService.currentExam(req.user);
+        const exam = await UserService.currentExam(req.user);
         if (!exam) {
           return Response.notFoundError(
             res,
             'You currently have no active exams'
           );
         }
-        return Response.customResponse(res, 'Your exam:', exam);
+        return Response.customResponse(res, 200, 'Your exam:', exam);
+      } catch (error) {
+        return next(error);
+      }
+    };
+  }
+
+  /**
+   * Starts an Exam
+   * @returns {customResponse} - returns started exam
+   */
+  static startExam() {
+    return async (req, res, next) => {
+      try {
+        const exam = await UserService.currentExam(req.user);
+        if (!exam) {
+          return Response.notFoundError(
+            res,
+            'You currently have no active exams'
+          );
+        }
+        const startedExam = await UserService.startExam(req.user, exam);
+        return Response.customResponse(res, 200, 'Started exam:', startedExam);
+      } catch (error) {
+        return next(error);
+      }
+    };
+  }
+
+  /**
+   * Submits an Exam
+   * @returns {customResponse} - returns confirmation
+   */
+  static submitExam() {
+    return async (req, res, next) => {
+      try {
+        const exam = await UserService.currentExam(req.user);
+        if (!exam || !exam.inProgress) {
+          return Response.notFoundError(
+            res,
+            'You currently have no active exams'
+          );
+        }
+        return (
+          // eslint-disable-next-line operator-linebreak
+          ((await UserService.submitExam(req.user)) &&
+            // eslint-disable-next-line operator-linebreak
+            Response.customResponse(res, 200, 'Exam submitted', {})) ||
+          Response.customResponse(
+            res,
+            500,
+            'An unexpected error has occurred',
+            {}
+          )
+        );
+      } catch (error) {
+        return next(error);
+      }
+    };
+  }
+
+  /**
+   * Answers an Exam
+   * @returns {customResponse} - returns confirmation
+   */
+  static answerExam() {
+    return async (req, res, next) => {
+      try {
+        const exam = await UserService.currentExam(req.user);
+        if (!exam || !exam.inProgress) {
+          return Response.notFoundError(
+            res,
+            'You currently have no active exams'
+          );
+        }
+        const answered = UserService.answerExam(req.user, req.body.answers);
+        if (!answered) {
+          return Response.customResponse(res, 200, 'Exam submitted', {});
+        }
+        return Response.customResponse(res, 200, 'Answers added', answered);
       } catch (error) {
         return next(error);
       }

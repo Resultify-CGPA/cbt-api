@@ -1,9 +1,41 @@
 /* eslint-disable operator-linebreak */
 /* eslint-disable no-underscore-dangle */
 import JWT from 'jsonwebtoken';
-import _ from 'lodash';
+import _, { parseInt } from 'lodash';
 
 import User from '../models/UsersModel';
+
+const examObject = (obj) => {
+  const { exam: objExam } = obj;
+  return {
+    answered: objExam.answered,
+    timeStart: objExam.timeStart,
+    timeLeft: Math.floor(
+      objExam.timeAllowed - (Date.now() - objExam.timeStart) / (1000 * 60)
+    ),
+    questions: objExam.questions
+  };
+};
+const saveExam = async (user) => {
+  try {
+    const { examId: _id, answered } = user.exam;
+    const exam = _.find(user.exams, { _id });
+    _.merge(exam, {
+      inProgress: false,
+      submitted: true,
+      answered
+    });
+    await exam.save();
+    _.merge(user.exam, {
+      inProgress: false,
+      answered: [],
+      questions: []
+    });
+    return await user.save();
+  } catch (error) {
+    throw error;
+  }
+};
 
 /** Class that handles user service */
 class UserService {
@@ -31,11 +63,11 @@ class UserService {
           exp:
             // eslint-disable-next-line operator-linebreak
             Math.floor(Date.now() / 1000) +
-            24 * 60 * 60(process.env.JWTExpireTime || 1),
+            24 * 60 * 60 * parseInt(process.env.JWTExpireTime || 1),
           // eslint-disable-next-line no-underscore-dangle
           data: { _id: user._id }
         },
-        process.env.JWTSecret || 'SomeJuicySecret'
+        process.env.JWTSecret || 'SomeJuicySecretSetOnEnv'
       );
       return { ...user.toJson(), accessToken };
     } catch (error) {
@@ -55,7 +87,7 @@ class UserService {
         const exams = allExams.reduce((acc, cur) => {
           if (
             Date.now() >= cur.sheduledfor &&
-            cur.exam_id.status &&
+            cur.examId.status &&
             !cur.submitted
           ) {
             return [
@@ -124,7 +156,89 @@ class UserService {
       const user = await User.findOne({
         _id,
         status: true
-      });
+      })
+        .populate({ path: 'exams.examId' })
+        .exec();
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Starts exam
+   * @param {object} user user object
+   * @param {object} exam exam to start
+   * @returns {object} started
+   */
+  static async startExam(user, exam) {
+    const { exam: currentExam } = user;
+    const fetchRandomQuestions = (main, res, count) => {
+      if (res.length === count || res.length === main.length) return res;
+      const question = main[Math.floor(Math.random() * main.length)];
+      if (!_.find(res, question)) {
+        const q = question.toObject();
+        delete q.correct;
+        res.push({ ...q, questionId: q._id });
+        return fetchRandomQuestions(main, res, count);
+      }
+      return fetchRandomQuestions(main, res, count);
+    };
+
+    if (currentExam.inProgress) {
+      return examObject(user);
+    }
+    _.merge(user.exam, {
+      examId: exam._id,
+      instructions: exam.examId.instructions,
+      title: exam.examId.instructions,
+      timeStart: Date.now(),
+      timeAllowed: exam.examId.timeAllowed,
+      answered: [],
+      questions: fetchRandomQuestions(
+        exam.examId.questions,
+        [],
+        exam.examId.questionPerStudent
+      ),
+      inProgress: true
+    });
+    _.merge(exam, { inProgress: true });
+    await exam.save();
+    await user.save();
+    return examObject(user);
+  }
+
+  /**
+   * Answers active exams
+   * @param {object} user user object
+   * @param {array} answers array of answers
+   * @returns {object} exam object
+   */
+  static async answerExam(user, answers) {
+    try {
+      user.exam.answered = answers;
+      user = await user.save();
+      if (
+        user.exam.timeStart + user.exam.timeAllowed * 1000 * 60 <
+        Date.now()
+      ) {
+        saveExam(user);
+        return null;
+      }
+      return examObject(user);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Saves an exam
+   * @param {object} user user object
+   * @returns {object} user object
+   */
+  static async submitExam(user) {
+    try {
+      user = await saveExam(user);
       return user;
     } catch (error) {
       throw error;
