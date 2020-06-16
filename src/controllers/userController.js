@@ -134,7 +134,10 @@ class UserController {
             'You currently have no active exams'
           );
         }
-        const answered = UserService.answerExam(req.user, req.body.answers);
+        const answered = await UserService.answerExam(
+          req.user,
+          req.body.answers
+        );
         if (!answered) {
           return Response.customResponse(res, 200, 'Exam submitted', {});
         }

@@ -164,8 +164,8 @@ class UserService {
   static async startExam(user, exam) {
     try {
       const { exam: currentExam } = user;
-      const fetchRandomQuestions = (main, res, count, examType = true) => {
-        if (res.length === count || res.length === main.length) {
+      const fetchRandomQuestions = (main, res = [], count, examType = true) => {
+        if (res.length === count || res.length >= main.length) {
           return res;
         }
         const index = Math.floor(Math.random() * main.length);
@@ -177,13 +177,13 @@ class UserService {
             department: user.department._id
           });
           if (!check) {
-            return fetchRandomQuestions(main, res, count);
+            return fetchRandomQuestions(main, res, count, examType);
           }
         }
         const q = question.toObject();
         delete q.correct;
         res.push({ ...q, questionId: q._id });
-        return fetchRandomQuestions(main, res, count);
+        return fetchRandomQuestions(main, res, count, examType);
       };
 
       if (currentExam.inProgress) {
@@ -197,19 +197,21 @@ class UserService {
         });
       }
       const newExam = await ExamsModel.findById(exam._id);
-      _.merge(user.exam, {
-        examId: exam._id,
-        instructions: newExam.instructions,
-        title: newExam.title,
-        timeStart: Date.now(),
-        answered: [],
-        questions: fetchRandomQuestions(
-          newExam.questions,
-          [],
-          newExam.questionPerStudent,
-          newExam.examType
-        ),
-        inProgress: true
+      _.merge(user, {
+        exam: {
+          examId: exam._id,
+          instructions: newExam.instructions,
+          title: newExam.title,
+          timeStart: Date.now(),
+          answered: [],
+          questions: fetchRandomQuestions(
+            newExam.questions,
+            [],
+            newExam.questionPerStudent,
+            newExam.examType
+          ),
+          inProgress: true
+        }
       });
       await user.save();
       return examObject({
@@ -237,7 +239,10 @@ class UserService {
         delete cur._id;
         return { [cur.questionId]: cur };
       }, {});
-      user.exam.answered = Object.values({ ...answered, ...answers });
+      user.exam.answered = Object.values({
+        ...answered,
+        [answers.questionId]: answers
+      });
       user = await user.save();
       if (
         user.exam.timeStart + user.exam.examId.timeAllowed * 1000 * 60 <
