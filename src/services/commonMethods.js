@@ -4,6 +4,20 @@
 import JWT from 'jsonwebtoken';
 import { parseInt } from 'lodash';
 
+export const __signToken = (data) =>
+  // eslint-disable-next-line implicit-arrow-linebreak
+  JWT.sign(
+    {
+      exp:
+        // eslint-disable-next-line operator-linebreak
+        Math.floor(Date.now() / 1000) +
+        24 * 60 * 60 * parseInt(process.env.JWTExpireTime || 1),
+      // eslint-disable-next-line no-underscore-dangle
+      data
+    },
+    process.env.JWTSecret || 'SomeJuicySecretSetOnEnv'
+  );
+
 /** Class of methods that are common to services */
 class CommonMethods {
   /**
@@ -30,17 +44,7 @@ class CommonMethods {
         Model.collection.collectionName === 'administrators'
           ? { password: user.password }
           : { _id: user._id };
-      const accessToken = JWT.sign(
-        {
-          exp:
-            // eslint-disable-next-line operator-linebreak
-            Math.floor(Date.now() / 1000) +
-            24 * 60 * 60 * parseInt(process.env.JWTExpireTime || 1),
-          // eslint-disable-next-line no-underscore-dangle
-          data
-        },
-        process.env.JWTSecret || 'SomeJuicySecretSetOnEnv'
-      );
+      const accessToken = __signToken(data);
       return { ...user.toJson(), accessToken };
     } catch (error) {
       throw error;

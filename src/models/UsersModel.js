@@ -24,17 +24,11 @@ const UsersSchema = new Schema(
     },
     exam: {
       examId: {
-        type: Schema.Types.ObjectId
-      },
-      instructions: {
-        type: String
-      },
-      title: {
-        type: String
+        type: Schema.Types.ObjectId,
+        ref: 'exams'
       },
       timeStart: {
-        type: Number,
-        default: Date.now()
+        type: Number
       },
       answered: [
         {
@@ -42,7 +36,6 @@ const UsersSchema = new Schema(
           answer: String
         }
       ],
-      timeAllowed: Number,
       inProgress: {
         type: Boolean,
         default: false
@@ -82,35 +75,7 @@ const UsersSchema = new Schema(
     name: {
       required: true,
       type: String
-    },
-    exams: [
-      {
-        examId: {
-          type: Schema.Types.ObjectId,
-          required: true,
-          ref: 'exams'
-        },
-        sheduledfor: {
-          type: Number,
-          required: true
-        },
-        submitted: {
-          type: Boolean,
-          default: false,
-          required: true
-        },
-        inProgress: {
-          type: Boolean,
-          default: false
-        },
-        answers: [
-          {
-            question: { type: Schema.Types.ObjectId },
-            answer: String
-          }
-        ]
-      }
-    ]
+    }
   },
   { timestamps: true }
 );

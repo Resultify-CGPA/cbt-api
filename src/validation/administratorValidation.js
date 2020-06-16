@@ -117,6 +117,7 @@ class AdminValidation {
         instructions: Joi.string().required(),
         questionsPerStudent: Joi.number().required(),
         examType: Joi.boolean(),
+        markPerQuestion: Joi.number().required(),
         questions: Joi.array().items(
           Joi.object().keys({
             questionFor: Joi.array().items(
@@ -160,6 +161,7 @@ class AdminValidation {
         instructions: Joi.string(),
         questionsPerStudent: Joi.number(),
         examType: Joi.boolean(),
+        markPerQuestion: Joi.number(),
         questions: Joi.array().items(
           Joi.object().keys({
             questionFor: Joi.array().items(

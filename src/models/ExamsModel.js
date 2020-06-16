@@ -27,6 +27,10 @@ const ExamsModel = new Schema(
         exam: {
           type: Number,
           default: 0
+        },
+        submitted: {
+          type: Boolean,
+          default: false
         }
       }
     ],
@@ -49,6 +53,10 @@ const ExamsModel = new Schema(
     examType: {
       type: Boolean,
       default: true
+    },
+    markPerQuestion: {
+      type: Number,
+      default: 2
     },
     questions: [
       {

@@ -10,11 +10,10 @@ class UserController {
   static signInUser() {
     return async (req, res, next) => {
       try {
-        const { username } = req.body;
-        const $or = [{ username }, { email: username }, { matric: username }];
+        const { username: matric, password } = req.body;
         const user = await UserService.signInUser({
-          $or,
-          password: req.body.password
+          matric,
+          password
         });
         if (!user) {
           return Response.authenticationError(res, 'invalid credentials');
