@@ -69,67 +69,74 @@ export default async (
     return;
   }
   try {
-    await Models.forEach(async (model) => {
-      try {
-        const count = await model.deleteMany({});
-        console.log(
-          `cleaned ${count.deletedCount} ${model.collection.collectionName} from ${model.collection.collectionName}`
-        );
-      } catch (error) {
-        console.log(error);
-      }
-    });
+    const cleard = await Promise.all(
+      Models.map(async (model) => {
+        try {
+          const count = await model.deleteMany({});
+          console.log(
+            `cleaned ${count.deletedCount} ${model.collection.collectionName} from ${model.collection.collectionName}`
+          );
+          return count;
+        } catch (error) {
+          console.log(error);
+        }
+      })
+    );
 
     //  The seeding begins
-    await hierarchy.forEach(async (elem) => {
-      const faculty = await Faculties.create({ faculty: elem.faculty });
-      if (!elem.departments) {
-        return;
-      }
-      let departments = elem.departments.map((el) => ({
-        ...el,
-        faculty: faculty._id
-      }));
-      departments = await Departments.create(departments);
-      if (!elem.users) {
-        return;
-      }
-      let users = elem.users.map((u) => {
-        const f =
-          _.find(departments, { department: u.department }) ||
-          departments[Math.floor(Math.random() * departments.length)];
-        return { ...u, faculty: f.faculty, department: f._id };
-      });
-      users = await Users.create(users);
-      const e = exams.map((ele) => {
-        ele.bioData = users.reduce(
-          (acc, cur) => [...acc, { user: cur._id }],
-          []
-        );
-        if (ele.questions && ele.questions.questionFor) {
-          ele.questions = ele.questions.reduce(
-            (acc, cur) => [
-              ...acc,
-              {
-                ...cur,
-                questionFor: cur.question.reduce((accc, curr) => {
-                  const f =
-                    _.find(departments, { department: curr.department }) ||
-                    departments[Math.floor(Math.random() * departments.length)];
-                  return [
-                    ...accc,
-                    { ...curr, faculty: f.faculty, department: f._id }
-                  ];
-                })
-              }
-            ],
+    if (cleard.length > 0) {
+      await hierarchy.forEach(async (elem) => {
+        const faculty = await Faculties.create({ faculty: elem.faculty });
+        if (!elem.departments) {
+          return;
+        }
+        let departments = elem.departments.map((el) => ({
+          ...el,
+          faculty: faculty._id
+        }));
+        departments = await Departments.create(departments);
+        if (!elem.users) {
+          return;
+        }
+        let users = elem.users.map((u) => {
+          const f =
+            _.find(departments, { department: u.department }) ||
+            departments[Math.floor(Math.random() * departments.length)];
+          return { ...u, faculty: f.faculty, department: f._id };
+        });
+        users = await Users.create(users);
+        const e = exams.map((ele) => {
+          ele.bioData = users.reduce(
+            (acc, cur) => [...acc, { user: cur._id }],
             []
           );
-        }
-        return ele;
+          if (ele.questions && ele.questions.questionFor) {
+            ele.questions = ele.questions.reduce(
+              (acc, cur) => [
+                ...acc,
+                {
+                  ...cur,
+                  questionFor: cur.question.reduce((accc, curr) => {
+                    const f =
+                      _.find(departments, { department: curr.department }) ||
+                      departments[
+                        Math.floor(Math.random() * departments.length)
+                      ];
+                    return [
+                      ...accc,
+                      { ...curr, faculty: f.faculty, department: f._id }
+                    ];
+                  })
+                }
+              ],
+              []
+            );
+          }
+          return ele;
+        });
+        await Exams.create(e);
       });
-      await Exams.create(e);
-    });
+    }
     //   The seeding ends
 
     await Admins.create(admin);

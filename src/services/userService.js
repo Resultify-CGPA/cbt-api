@@ -55,7 +55,9 @@ class UserService {
   static async signInUser(param) {
     try {
       const { matric, password: pin } = param;
-      const user = await User.findOne({ matric });
+      const user = await User.findOne({ matric }).populate({
+        path: 'faculty department'
+      });
       if (!user) {
         return user;
       }
@@ -84,24 +86,24 @@ class UserService {
   static async currentExam(param) {
     const { _id } = param;
     try {
-      const activeExam = (exam) => ({
+      const activeExam = (exam, inProgress = false) => ({
         course: exam.course,
         scheduledfor: exam.scheduledFor,
         instructions: exam.instructions,
         title: exam.title,
         timeAllowed: exam.timeAllowed,
         _id: exam._id,
-        inProgress: true,
+        inProgress,
         submitted: false
       });
       const newExam = async () => {
         const exams = await ExamsModel.find({
           status: true,
-          bioData: { user: _id, submitted: false }
+          bioData: { $elemMatch: { user: _id, submitted: false } }
         });
         const exam = _.orderBy(exams, 'scheduledFor', 'asc')[0];
         if (!exam) {
-          return null;
+          return exams;
         }
         return activeExam(exam);
       };
@@ -129,7 +131,7 @@ class UserService {
           await param.save();
           return newExam();
         }
-        return activeExam(exam);
+        return activeExam(exam, true);
       }
       return newExam();
     } catch (error) {
