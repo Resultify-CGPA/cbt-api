@@ -1,24 +1,29 @@
+/* eslint-disable operator-linebreak */
+/* eslint-disable no-underscore-dangle */
+import _ from 'lodash';
+
 import Users from '../models/UsersModel';
 import Exams from '../models/ExamsModel';
 import Admins from '../models/AdministratorModel';
+import Departments from '../models/Departments';
+import Faculties from '../models/Faculties';
 
-const users = [
-  {
-    matric: '13ms1023',
-    password: 'password',
-    department: 'mathematical sciences',
-    faculty: 'natural sciences',
-    name: 'Ojonugwa Alikali Justice'
-  }
-];
+const admin = {
+  name: 'John Doe',
+  username: 'admin',
+  password: 'password',
+  email: 'admin@mail.com'
+};
 
 const exams = [
   {
     course: 'gst 103',
     title: 'Nigerian people and culture',
+    scheduledFor: Date.now(),
     timeAllowed: 45,
     instructions: 'Keep your arms and feets in the vehicle at all times.',
     questionsPerStudent: 30,
+    markPerQuestion: 2,
     questions: [
       {
         type: true,
@@ -35,15 +40,31 @@ const exams = [
     ]
   }
 ];
+const deptNtSci = [
+  {
+    department: 'mathematical sciences'
+  }
+];
 
-const admin = {
-  name: 'John Doe',
-  username: 'admin',
-  password: 'password',
-  email: 'admin@mail.com'
-};
+const hierarchy = [
+  {
+    faculty: 'natural sciences',
+    departments: deptNtSci,
+    users: [
+      {
+        name: 'Ojonugwa Alikali Justice',
+        matric: '13ms1023',
+        department: 'mathematical sciences'
+      }
+    ],
+    exams
+  }
+];
 
-export default async (runClean = true, Models = [Users, Exams, Admins]) => {
+export default async (
+  runClean = true,
+  Models = [Users, Exams, Admins, Departments, Faculties]
+) => {
   if (!runClean) {
     return;
   }
@@ -58,28 +79,59 @@ export default async (runClean = true, Models = [Users, Exams, Admins]) => {
         console.log(error);
       }
     });
-    const examIds = await Promise.all(
-      exams.map(async (exam) => Exams.create(exam))
-    );
-    await Promise.all(
-      users.map(async (user) => {
-        user = await Users.create(user);
-        const e = examIds.reduce(
-          (acc, cur) => [
-            ...acc,
-            {
-              // eslint-disable-next-line no-underscore-dangle
-              examId: cur._id,
-              sheduledfor: Date.now(),
-              answers: []
-            }
-          ],
+
+    //  The seeding begins
+    await hierarchy.forEach(async (elem) => {
+      const faculty = await Faculties.create({ faculty: elem.faculty });
+      if (!elem.departments) {
+        return;
+      }
+      let departments = elem.departments.map((el) => ({
+        ...el,
+        faculty: faculty._id
+      }));
+      departments = await Departments.create(departments);
+      if (!elem.users) {
+        return;
+      }
+      let users = elem.users.map((u) => {
+        const f =
+          _.find(departments, { department: u.department }) ||
+          departments[Math.floor(Math.random() * departments.length)];
+        return { ...u, faculty: f.faculty, department: f._id };
+      });
+      users = await Users.create(users);
+      const e = exams.map((ele) => {
+        ele.bioData = users.reduce(
+          (acc, cur) => [...acc, { user: cur._id }],
           []
         );
-        user.exams = e;
-        return user.save();
-      })
-    );
+        if (ele.questions && ele.questions.questionFor) {
+          ele.questions = ele.questions.reduce(
+            (acc, cur) => [
+              ...acc,
+              {
+                ...cur,
+                questionFor: cur.question.reduce((accc, curr) => {
+                  const f =
+                    _.find(departments, { department: curr.department }) ||
+                    departments[Math.floor(Math.random() * departments.length)];
+                  return [
+                    ...accc,
+                    { ...curr, faculty: f.faculty, department: f._id }
+                  ];
+                })
+              }
+            ],
+            []
+          );
+        }
+        return ele;
+      });
+      await Exams.create(e);
+    });
+    //   The seeding ends
+
     await Admins.create(admin);
   } catch (error) {
     console.log(error);
