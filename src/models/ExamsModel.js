@@ -10,6 +10,26 @@ const ExamsModel = new Schema(
       type: Boolean,
       default: true
     },
+    scheduledFor: {
+      type: Number,
+      required: true
+    },
+    bioData: [
+      {
+        user: {
+          type: Schema.Types.ObjectId,
+          ref: 'users'
+        },
+        ca: {
+          type: Number,
+          default: 0
+        },
+        exam: {
+          type: Number,
+          default: 0
+        }
+      }
+    ],
     title: {
       type: String,
       required: true
@@ -26,8 +46,24 @@ const ExamsModel = new Schema(
       required: true,
       type: Number
     },
+    examType: {
+      type: Boolean,
+      default: true
+    },
     questions: [
       {
+        questionFor: [
+          {
+            faculty: {
+              type: Schema.Types.ObjectId,
+              ref: 'faculty'
+            },
+            department: {
+              type: Schema.Types.ObjectId,
+              ref: 'department'
+            }
+          }
+        ],
         type: {
           type: Boolean,
           default: true

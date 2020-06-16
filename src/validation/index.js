@@ -9,8 +9,8 @@ export default {
     })
     .trim()
     .required(),
-  username: Joi.string().min(3).required(),
-  password: Joi.string().min(8).required(),
+  username: Joi.string().required(),
+  password: Joi.string().required(),
   answers: Joi.array()
     .items(
       Joi.object().keys({

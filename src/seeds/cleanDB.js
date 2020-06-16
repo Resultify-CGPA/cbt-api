@@ -1,5 +1,6 @@
 import Users from '../models/UsersModel';
 import Exams from '../models/ExamsModel';
+import Admins from '../models/AdministratorModel';
 
 const users = [
   {
@@ -18,20 +19,34 @@ const exams = [
     timeAllowed: 45,
     instructions: 'Keep your arms and feets in the vehicle at all times.',
     questionsPerStudent: 30,
-    type: true,
-    correct: 'a',
-    question:
-      'Since mongo park discovered river Niger, who discovered mongo park?',
-    options: {
-      a: 'Jona Lukas',
-      b: 'Henry Hart',
-      c: 'Joseph Tulip',
-      d: 'Abraham Lincoln'
-    }
+    questions: [
+      {
+        type: true,
+        correct: 'a',
+        question:
+          'Since mongo park discovered river Niger, who discovered mongo park?',
+        options: {
+          a: 'Jona Lukas',
+          b: 'Henry Hart',
+          c: 'Joseph Tulip',
+          d: 'Abraham Lincoln'
+        }
+      }
+    ]
   }
 ];
 
-export default async (Models = [Users, Exams]) => {
+const admin = {
+  name: 'John Doe',
+  username: 'admin',
+  password: 'password',
+  email: 'admin@mail.com'
+};
+
+export default async (runClean = true, Models = [Users, Exams, Admins]) => {
+  if (!runClean) {
+    return;
+  }
   try {
     await Models.forEach(async (model) => {
       try {
@@ -65,6 +80,7 @@ export default async (Models = [Users, Exams]) => {
         return user.save();
       })
     );
+    await Admins.create(admin);
   } catch (error) {
     console.log(error);
   }

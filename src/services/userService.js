@@ -1,9 +1,9 @@
 /* eslint-disable operator-linebreak */
 /* eslint-disable no-underscore-dangle */
-import JWT from 'jsonwebtoken';
-import _, { parseInt } from 'lodash';
+import _ from 'lodash';
 
 import User from '../models/UsersModel';
+import CommonMethods from './commonMethods';
 
 const examObject = (obj) => {
   const { exam: objExam } = obj;
@@ -46,30 +46,7 @@ class UserService {
    */
   static async signInUser(param) {
     try {
-      const user = await User.findOne({
-        $or: param.$or
-      });
-      if (!user || !(await user.authenticate(param.password))) {
-        return null;
-      }
-      if (!user.status) {
-        const e = new Error('this account has been blocked');
-        e.status = 403;
-        e.name = 'LOGIN_ERROR';
-        throw e;
-      }
-      const accessToken = JWT.sign(
-        {
-          exp:
-            // eslint-disable-next-line operator-linebreak
-            Math.floor(Date.now() / 1000) +
-            24 * 60 * 60 * parseInt(process.env.JWTExpireTime || 1),
-          // eslint-disable-next-line no-underscore-dangle
-          data: { _id: user._id }
-        },
-        process.env.JWTSecret || 'SomeJuicySecretSetOnEnv'
-      );
-      return { ...user.toJson(), accessToken };
+      return await CommonMethods.SignInUser(param, User);
     } catch (error) {
       throw error;
     }
@@ -148,15 +125,12 @@ class UserService {
 
   /**
    * Gets one user
-   * @param {string} _id - userId
+   * @param {object} param - param to find user by
    * @returns {object} - user object
    */
-  static async getOneUser(_id) {
+  static async getOneUser(param) {
     try {
-      const user = await User.findOne({
-        _id,
-        status: true
-      })
+      const user = await User.findOne(param)
         .populate({ path: 'exams.examId' })
         .exec();
       return user;
@@ -240,6 +214,36 @@ class UserService {
     try {
       user = await saveExam(user);
       return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Gets all users
+   * @returns {array} array of users
+   */
+  static async getAllUsers() {
+    try {
+      const users = await User.find().populate({ path: 'exams.examId' }).exec();
+      return _.orderBy(users, 'status', 'desc');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Creates users from array of data
+   * @param {array} users array of users
+   * @returns {array} array of created users
+   */
+  static async createUsers(users) {
+    try {
+      if (users.length < 1) {
+        return [];
+      }
+      const created = await User.create(users);
+      return created.map((user) => user.toJson());
     } catch (error) {
       throw error;
     }

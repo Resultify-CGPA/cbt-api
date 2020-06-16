@@ -33,8 +33,8 @@ class UserController {
   static getFreshUser() {
     return async (req, res, next) => {
       try {
-        const { _id: id } = req.user.data;
-        const user = await UserService.getOneUser(id);
+        const { _id } = req.user.data;
+        const user = await UserService.getOneUser({ _id, status: true });
         if (!user) {
           return Response.authorizationError(res, 'unauthorized');
         }
