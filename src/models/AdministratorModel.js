@@ -18,6 +18,10 @@ const AdminSchema = new Schema(
     email: {
       type: String,
       required: true
+    },
+    accountType: {
+      type: String,
+      default: 'AppAdministrator'
     }
   },
   { timestamps: true }

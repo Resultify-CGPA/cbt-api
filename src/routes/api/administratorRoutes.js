@@ -4,6 +4,7 @@ import AdminController from '../../controllers/administratorController';
 import UserValidation from '../../validation/userValidation';
 import AdminValidation from '../../validation/administratorValidation';
 import JWT from '../../middlewares/JWTMiddleware';
+import Parser from '../../middlewares/ExamSpreadSheetParser';
 
 const router = Router();
 
@@ -54,11 +55,16 @@ router
 router
   .route('/exams')
   .get(AdminController.getAllExams())
-  .post(AdminValidation.validateExamCreation(), AdminController.createExam());
+  .post(
+    Parser.parseExamRoute(),
+    AdminValidation.validateExamCreation(),
+    AdminController.createExam()
+  );
 router
   .route('/exams/:exam')
   .get(AdminController.getOneExam())
   .put(
+    Parser.parseExamRoute(),
     AdminValidation.validateExamUpdateData(),
     AdminController.updateOneExam()
   );

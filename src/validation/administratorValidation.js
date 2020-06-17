@@ -110,7 +110,11 @@ class AdminValidation {
         course: Joi.string().required(),
         scheduledFor: Joi.number().required(),
         bioData: Joi.array().items(
-          Joi.object().keys({ matric: Joi.string().required() })
+          Joi.object().keys({
+            matric: Joi.string().required(),
+            ca: Joi.number().default(0),
+            exam: Joi.number().default(0)
+          })
         ),
         title: Joi.string().required(),
         timeAllowed: Joi.number().required(),
