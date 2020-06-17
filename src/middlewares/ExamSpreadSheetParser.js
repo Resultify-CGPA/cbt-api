@@ -54,8 +54,8 @@ class ExcelParser {
       };
 
       try {
-        if (req.questions) {
-          const file = saveExcel(req.questions);
+        if (req.body.questions && !Array.isArray(req.body.questions)) {
+          const file = saveExcel(req.body.questions);
 
           // Decoding excel file to array
           const data = await xlsxFile(file);
@@ -63,7 +63,7 @@ class ExcelParser {
           //  Parsing Decoded data
           const objectHead = data[0];
           data.splice(0, 1);
-          req.questions = data.reduce(
+          req.body.questions = data.reduce(
             (questionsAccumulator, currentQuestion) => [
               ...questionsAccumulator,
               objectHead.reduce(
@@ -83,8 +83,8 @@ class ExcelParser {
           );
         }
 
-        if (req.bioData) {
-          const file = saveExcel(req.bioData);
+        if (req.body.bioData && !Array.isArray(req.body.bioData)) {
+          const file = saveExcel(req.body.bioData);
 
           //  Decoding excel file to array
           const data = await xlsxFile(file);
@@ -92,7 +92,7 @@ class ExcelParser {
           // Parsing Decoded data
           const objectHead = data[0];
           data.splice(0, 1);
-          req.bioData = data.reduce(
+          req.body.bioData = data.reduce(
             (ac, cu) => [
               ...ac,
               objectHead.reduce(
@@ -106,7 +106,7 @@ class ExcelParser {
             []
           );
         }
-        next();
+        return next();
       } catch (error) {
         next(error);
       }

@@ -11,7 +11,7 @@ const __validateBioData = (bioData) =>
   bioData.reduce(
     async (acc, cur) => {
       acc = await acc;
-      const user = await UserService.getOneUser(cur);
+      const user = await UserService.getOneUser({ matric: cur.matric });
       if (!user) {
         return {
           ...acc,
@@ -485,7 +485,7 @@ class AdminController {
   static createExam() {
     return async (req, res, next) => {
       try {
-        const { exam } = req.body;
+        const exam = req.body;
         exam.questions = exam.questions || [];
         exam.bioData = exam.bioData || [];
         const { bioData } = exam;
