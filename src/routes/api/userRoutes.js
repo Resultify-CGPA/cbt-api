@@ -8,6 +8,15 @@ const router = Router();
 
 router.post('/signin', validator.validateSigninData(), controller.signInUser());
 router.use(JWT.decodeToken(), controller.getFreshUser());
+router.get(
+  '/me',
+  (req, res) =>
+    // eslint-disable-next-line implicit-arrow-linebreak
+    res
+      .status(200)
+      .json({ message: 'user', status: 200, data: req.user.toJson() })
+  // eslint-disable-next-line function-paren-newline
+);
 router
   .route('/exams')
   .get(controller.getExams())
