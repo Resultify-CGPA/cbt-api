@@ -489,19 +489,16 @@ class AdminController {
         exam.questions = exam.questions || [];
         exam.bioData = exam.bioData || [];
         const { bioData } = exam;
-        if (exam.hasOwnProperty('examType') && !exam.examType) {
-          //  Lets check the faculties and departments passed
-          const check = await __validateExamQuestions(exam);
-          if (check.errors.length > 0) {
-            return Response.customResponse(
-              res,
-              400,
-              'fix the following errors',
-              check.errors
-            );
-          }
+        let check = await __validateExamQuestions(exam);
+        if (check.errors.length > 0) {
+          return Response.customResponse(
+            res,
+            400,
+            'fix the following errors',
+            check.errors
+          );
         }
-        const check = await __validateBioData(bioData);
+        check = await __validateBioData(bioData);
         if (check.errors.length > 0) {
           return Response.customResponse(
             res,
@@ -510,6 +507,7 @@ class AdminController {
             check.errors
           );
         }
+
         exam.bioData = check.bioData;
         const created = await ExamService.CreateExam(exam);
         return Response.customResponse(res, 200, 'created exam:', created);

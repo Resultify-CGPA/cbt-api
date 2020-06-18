@@ -43,6 +43,10 @@ app.use((error, req, res, next) => {
     process.env.NODE_ENV === 'production'
       ? {}
       : { ...error, stack: error.stack };
+  console.log({
+    message: error.message,
+    ...stack
+  });
   res.status(status).json({
     message: error.message,
     ...stack
