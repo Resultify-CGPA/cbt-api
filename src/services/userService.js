@@ -30,7 +30,7 @@ const saveExam = async (user) => {
       const { questionId: _id, answer } = elem;
       const question = _.find(exam.questions, { _id });
       if (question.correct.toLowerCase() === answer.toLowerCase()) {
-        userBioData.exam += exam.markPerQuestion;
+        userBioData.exam += question.marks;
       }
     });
     await userBioData.save();
@@ -88,7 +88,6 @@ class UserService {
     try {
       const activeExam = (exam, inProgress = false) => ({
         course: exam.course,
-        scheduledfor: exam.scheduledFor,
         instructions: exam.instructions,
         title: exam.title,
         timeAllowed: exam.timeAllowed,
@@ -97,14 +96,10 @@ class UserService {
         submitted: false
       });
       const newExam = async () => {
-        const exams = await ExamsModel.find({
-          status: true,
+        const exam = await ExamsModel.findOne({
+          status: 1,
           bioData: { $elemMatch: { user: _id, submitted: false } }
         });
-        const exam = _.orderBy(exams, 'scheduledFor', 'asc')[0];
-        if (!exam) {
-          return exams;
-        }
         return activeExam(exam);
       };
       if (param.exam.inProgress) {
@@ -119,7 +114,7 @@ class UserService {
             const { questionId: _id, answer } = elem;
             const question = _.find(exam.questions, { _id });
             if (question.correct.toLowerCase() === answer.toLowerCase()) {
-              userBioData.exam += exam.markPerQuestion;
+              userBioData.exam += question.marks;
             }
           });
           await userBioData.save();
@@ -164,8 +159,18 @@ class UserService {
   static async startExam(user, exam) {
     try {
       const { exam: currentExam } = user;
-      const fetchRandomQuestions = (main, res = [], count, examType = true) => {
-        if (res.length === count || res.length >= main.length) {
+      const fetchRandomQuestions = (
+        main,
+        res = [],
+        count,
+        examType = true,
+        marksCount = 0
+      ) => {
+        if (
+          res.length === count ||
+          res.length >= main.length ||
+          marksCount >= 70
+        ) {
           return res;
         }
         const index = Math.floor(Math.random() * main.length);
@@ -177,13 +182,17 @@ class UserService {
             department: user.department._id
           });
           if (!check) {
-            return fetchRandomQuestions(main, res, count, examType);
+            return fetchRandomQuestions(main, res, count, examType, marksCount);
           }
         }
         const q = question.toObject();
         delete q.correct;
+        if (marksCount + q.marks > 70) {
+          return fetchRandomQuestions(main, res, count, examType, marksCount);
+        }
+        marksCount += q.marks;
         res.push({ ...q, questionId: q._id });
-        return fetchRandomQuestions(main, res, count, examType);
+        return fetchRandomQuestions(main, res, count, examType, marksCount);
       };
 
       if (currentExam.inProgress) {

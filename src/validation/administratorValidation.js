@@ -108,7 +108,6 @@ class AdminValidation {
     return (req, res, next) => {
       const schema = Joi.object().keys({
         course: Joi.string().required(),
-        scheduledFor: Joi.number().required(),
         bioData: Joi.array().items(
           Joi.object().keys({
             matric: Joi.string().required(),
@@ -121,7 +120,6 @@ class AdminValidation {
         instructions: Joi.string().required(),
         questionsPerStudent: Joi.number().required(),
         examType: Joi.boolean(),
-        markPerQuestion: Joi.number().required(),
         questions: Joi.array().items(
           Joi.object().keys({
             questionFor: Joi.array().items(
@@ -130,6 +128,7 @@ class AdminValidation {
                 department: Joi.string().required()
               })
             ),
+            marks: Joi.number().required(),
             type: Joi.boolean(),
             correct: Joi.string().required(),
             question: Joi.string().required(),
@@ -155,8 +154,8 @@ class AdminValidation {
   static validateExamUpdateData() {
     return (req, res, next) => {
       const schema = Joi.object().keys({
+        status: Joi.number(),
         course: Joi.string(),
-        scheduledFor: Joi.number(),
         bioData: Joi.array().items(
           Joi.object().keys({ matric: Joi.string().required() })
         ),
@@ -165,7 +164,6 @@ class AdminValidation {
         instructions: Joi.string(),
         questionsPerStudent: Joi.number(),
         examType: Joi.boolean(),
-        markPerQuestion: Joi.number(),
         questions: Joi.array().items(
           Joi.object().keys({
             questionFor: Joi.array().items(
@@ -176,6 +174,7 @@ class AdminValidation {
             ),
             type: Joi.boolean().required(),
             correct: Joi.string().required(),
+            marks: Joi.number().required(),
             question: Joi.string().required(),
             options: Joi.object()
               .keys({

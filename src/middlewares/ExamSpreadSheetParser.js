@@ -2,13 +2,10 @@ import xlsxFile from 'read-excel-file/node';
 import path from 'path';
 import fs from 'fs';
 
-import { randStringGen } from '../utils/index';
-
 const saveExcel = (base64) => {
   try {
     const buff = Buffer.from(base64, 'base64');
-    let fileName = randStringGen(20);
-    fileName = path.resolve(`src/assets/excel/${fileName}.xlsx`);
+    const fileName = path.resolve(__dirname, 'excelFile.xlsx');
     fs.writeFileSync(fileName, buff);
     return fileName;
   } catch (error) {

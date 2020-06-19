@@ -545,6 +545,15 @@ class AdminController {
       try {
         const { exam: _id } = req.params;
         const updateExam = req.body;
+        if (updateExam.status && updateExam.status === 1) {
+          const validate = await ExamService.getOneExam({ status: 1 });
+          if (validate) {
+            return Response.badRequestError(
+              res,
+              'end active exam to make this one active'
+            );
+          }
+        }
         let check = await __validateBioData(updateExam.bioData || []);
         if (check.errors.length > 0) {
           return Response.customResponse(

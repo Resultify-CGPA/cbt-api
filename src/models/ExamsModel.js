@@ -7,12 +7,8 @@ const ExamsModel = new Schema(
       required: true
     },
     status: {
-      type: Boolean,
-      default: true
-    },
-    scheduledFor: {
       type: Number,
-      required: true
+      default: 0
     },
     bioData: [
       {
@@ -22,11 +18,13 @@ const ExamsModel = new Schema(
         },
         ca: {
           type: Number,
-          default: 0
+          default: 0,
+          max: 30
         },
         exam: {
           type: Number,
-          default: 0
+          default: 0,
+          max: 70
         },
         submitted: {
           type: Boolean,
@@ -54,10 +52,6 @@ const ExamsModel = new Schema(
       type: Boolean,
       default: true
     },
-    markPerQuestion: {
-      type: Number,
-      default: 2
-    },
     questions: [
       {
         questionFor: [
@@ -75,6 +69,10 @@ const ExamsModel = new Schema(
         type: {
           type: Boolean,
           default: true
+        },
+        marks: {
+          type: Number,
+          required: true
         },
         correct: {
           type: String,

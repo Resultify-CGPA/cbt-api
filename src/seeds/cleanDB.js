@@ -19,11 +19,9 @@ const exams = [
   {
     course: 'gst 103',
     title: 'Nigerian people and culture',
-    scheduledFor: Date.now(),
     timeAllowed: 45,
     instructions: 'Keep your arms and feets in the vehicle at all times.',
     questionsPerStudent: 30,
-    markPerQuestion: 2,
     questions: [
       {
         type: true,
@@ -35,31 +33,32 @@ const exams = [
           b: 'Henry Hart',
           c: 'Joseph Tulip',
           d: 'Abraham Lincoln'
-        }
+        },
+        marks: 2
       },
       {
         type: true,
         correct: 'a',
-        question:
-          'Who is the President of Nigeria?',
+        question: 'Who is the President of Nigeria?',
         options: {
           a: 'General Muhamadu Buhari',
           b: 'Henry Hart',
           c: 'Goodluck Ebele Jonathan',
           d: 'Abraham Lincoln'
-        }
+        },
+        marks: 3
       },
       {
         type: true,
         correct: 'c',
-        question:
-          'PAAU Stands for?',
+        question: 'PAAU Stands for?',
         options: {
           a: 'Prince Atabo Audu University',
           b: 'Prince Abubakar Adeiza University',
           c: 'Prince Abubakar Audu University',
           d: 'Prince Ahmodu Adeiza University'
-        }
+        },
+        marks: 5
       }
     ]
   }
