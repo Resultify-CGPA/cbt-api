@@ -36,6 +36,30 @@ const exams = [
           c: 'Joseph Tulip',
           d: 'Abraham Lincoln'
         }
+      },
+      {
+        type: true,
+        correct: 'a',
+        question:
+          'Who is the President of Nigeria?',
+        options: {
+          a: 'General Muhamadu Buhari',
+          b: 'Henry Hart',
+          c: 'Goodluck Ebele Jonathan',
+          d: 'Abraham Lincoln'
+        }
+      },
+      {
+        type: true,
+        correct: 'c',
+        question:
+          'PAAU Stands for?',
+        options: {
+          a: 'Prince Atabo Audu University',
+          b: 'Prince Abubakar Adeiza University',
+          c: 'Prince Abubakar Audu University',
+          d: 'Prince Ahmodu Adeiza University'
+        }
       }
     ]
   }
