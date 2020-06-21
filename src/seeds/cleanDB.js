@@ -13,7 +13,8 @@ const admin = {
   name: 'John Doe',
   username: 'admin',
   password: 'password',
-  email: 'admin@mail.com'
+  email: 'admin@mail.com',
+  isRootAdmin: true
 };
 
 const pins = [

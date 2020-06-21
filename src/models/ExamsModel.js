@@ -58,6 +58,7 @@ const ExamsModel = new Schema(
     },
     questions: [
       {
+        images: [{ type: String }],
         questionFor: [
           {
             faculty: {

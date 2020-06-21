@@ -4,7 +4,7 @@ import AdminController from '../../controllers/administratorController';
 import UserValidation from '../../validation/userValidation';
 import AdminValidation from '../../validation/administratorValidation';
 import JWT from '../../middlewares/JWTMiddleware';
-import Parser from '../../middlewares/ExamSpreadSheetParser';
+import Parser from '../../middlewares/BlobConverter';
 
 const router = Router();
 
@@ -15,6 +15,32 @@ router.post(
 );
 
 router.use(JWT.decodeToken(), AdminController.getFreshUser());
+router.post(
+  '/spreadsheet/examquestion',
+  AdminValidation.validateBase64(),
+  Parser.parseExamQuestion()
+);
+router.post(
+  '/spreadsheet/biodata',
+  AdminValidation.validateBase64(),
+  Parser.parseBioData()
+);
+router.post(
+  '/image/upload',
+  AdminValidation.validateBase64(),
+  Parser.parseImageFile()
+);
+router
+  .route('/')
+  .get(AdminController.getAllAdmins())
+  .post(
+    AdminValidation.validateAdminCreationData(),
+    AdminController.createNewAdmin()
+  );
+router
+  .route('/:administrator')
+  .get(AdminController.getOneAdmin())
+  .delete(AdminController.deleteOneAdmin());
 router
   .route('/pins')
   .get(AdminController.getAlPins())
@@ -66,11 +92,7 @@ router
 router
   .route('/exams')
   .get(AdminController.getAllExams())
-  .post(
-    Parser.parseExamRoute(),
-    AdminValidation.validateExamCreation(),
-    AdminController.createExam()
-  );
+  .post(AdminValidation.validateExamCreation(), AdminController.createExam());
 router
   .route('/exams/:exam/biodatas/:bioDataID')
   .get(AdminController.getOneBioData())
@@ -105,7 +127,6 @@ router
   .route('/exams/:exam')
   .get(AdminController.getOneExam())
   .put(
-    Parser.parseExamRoute(),
     AdminValidation.validateExamUpdateData(),
     AdminController.updateOneExam()
   );

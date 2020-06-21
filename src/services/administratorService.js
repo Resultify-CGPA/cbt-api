@@ -201,6 +201,25 @@ class AdministratorService {
       throw error;
     }
   }
+
+  /**
+   * creates one admin
+   * @param {object} param creation parameters
+   * @returns {object} created admin
+   */
+  static async createNewAdmin(param) {
+    const created = await AdministratorModel.create(param);
+    return created;
+  }
+
+  /**
+   * gets all admins
+   * @returns {array} array of administrators
+   */
+  static async getAllAdmins() {
+    const admins = await AdministratorModel.find();
+    return admins;
+  }
 }
 
 export default AdministratorService;

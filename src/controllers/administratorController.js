@@ -135,8 +135,8 @@ class AdminController {
   static getFreshUser() {
     return async (req, res, next) => {
       try {
-        const { password } = req.user.data;
-        const user = await AdminService.getOneUser({ password });
+        const { password, _id } = req.user.data;
+        const user = await AdminService.getOneUser({ password, _id });
         if (!user) {
           return Response.authorizationError(res, 'unauthorized');
         }
@@ -964,6 +964,108 @@ class AdminController {
           );
         }
         return Response.customResponse(res, 200, 'updated', increase);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * gets all admins
+   * @returns {function} middleware function
+   */
+  static getAllAdmins() {
+    return async (req, res, next) => {
+      if (!req.user.isRootUser) {
+        return Response.customResponse(
+          res,
+          403,
+          "you can't access this route",
+          null
+        );
+      }
+      try {
+        const data = await AdminService.getAllAdmins();
+        return Response.customResponse(res, 200, 'administrators', data);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * creates new admin
+   * @returns {function} middleware function
+   */
+  static createNewAdmin() {
+    return async (req, res, next) => {
+      if (!req.user.isRootUser) {
+        return Response.customResponse(
+          res,
+          403,
+          "you can't access this route",
+          null
+        );
+      }
+      try {
+        const newUser = AdminService.createNewAdmin(req.body);
+        return Response.customResponse(res, 200, 'admin', newUser);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * gets single admin
+   * @returns {function} middleware function
+   */
+  static getOneAdmin() {
+    return async (req, res, next) => {
+      if (!req.user.isRootUser) {
+        return Response.customResponse(
+          res,
+          403,
+          "you can't access this route",
+          null
+        );
+      }
+      try {
+        const { administrator: _id } = req.params;
+        const data = await AdminService.getOneUser({ _id });
+        if (!data) {
+          return Response.notFoundError(res, 'no administrator with that ID');
+        }
+        return Response.customResponse(res, 200, 'admin', data);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * deletes one user
+   * @returns {function} middleware function
+   */
+  static deleteOneAdmin() {
+    return async (req, res, next) => {
+      if (!req.user.isRootUser) {
+        return Response.customResponse(
+          res,
+          403,
+          "you can't access this route",
+          null
+        );
+      }
+      try {
+        const { administrator: _id } = req.params;
+        const data = await AdminService.getOneUser({ _id });
+        if (!data) {
+          return Response.notFoundError(res, 'no administrator with that ID');
+        }
+        data.status = false;
+        await data.save();
+        return Response.customResponse(res, 200, 'deleted', null);
       } catch (error) {
         next(error);
       }

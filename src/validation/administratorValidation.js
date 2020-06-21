@@ -39,7 +39,8 @@ class AdminValidation {
               matric: Joi.string().required(),
               name: Joi.string().required(),
               department: Joi.string().required(),
-              faculty: Joi.string().required()
+              faculty: Joi.string().required(),
+              avatar: Joi.string()
             })
           )
           .required()
@@ -130,6 +131,7 @@ class AdminValidation {
               })
             ),
             marks: Joi.number().required(),
+            images: Joi.array().items(Joi.string()),
             type: Joi.boolean(),
             correct: Joi.string().required(),
             question: Joi.string().required(),
@@ -225,6 +227,7 @@ class AdminValidation {
         ),
         type: Joi.boolean(),
         marks: Joi.number().required(),
+        images: Joi.array().items(Joi.string()),
         correct: Joi.string().required(),
         question: Joi.string().required(),
         options: Joi.object()
@@ -254,6 +257,7 @@ class AdminValidation {
           })
         ),
         type: Joi.boolean(),
+        images: Joi.array().items(Joi.string()),
         marks: Joi.number(),
         correct: Joi.string(),
         question: Joi.string(),
@@ -278,7 +282,8 @@ class AdminValidation {
         name: Joi.string(),
         faculty: Joi.string(),
         department: Joi.string(),
-        matric: Joi.string()
+        matric: Joi.string(),
+        avatar: Joi.string()
       });
       validator(schema, req.body, res, next);
     };
@@ -294,6 +299,42 @@ class AdminValidation {
         timeIncrease: Joi.number().required()
       });
       validator(schema, req.body, res, next);
+    };
+  }
+
+  /**
+   * validates admin creation data
+   * @returns {function} middleware function
+   */
+  static validateAdminCreationData() {
+    return (req, res, next) => {
+      const schema = Joi.object().keys({
+        username: Joi.string().min(4),
+        password: Joi.string().min(8),
+        email: Joi.string()
+          .email({
+            minDomainSegments: 2,
+            tlds: { allow: true }
+          })
+          .trim(),
+        name: Joi.string().min(4)
+      });
+      validator(schema, req.body, res, next);
+    };
+  }
+
+  /**
+   * validates base64 string
+   * @returns {function} middleware function
+   */
+  static validateBase64() {
+    return (req, res, next) => {
+      validator(
+        Joi.object().keys({ base64: Joi.string().required() }),
+        req.body,
+        res,
+        next
+      );
     };
   }
 }

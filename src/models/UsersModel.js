@@ -2,6 +2,9 @@ import { model, Schema } from 'mongoose';
 
 const UsersSchema = new Schema(
   {
+    avatar: {
+      type: String
+    },
     matric: {
       type: String,
       unique: true,

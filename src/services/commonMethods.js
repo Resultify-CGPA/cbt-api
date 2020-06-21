@@ -42,7 +42,7 @@ class CommonMethods {
       }
       const data =
         Model.collection.collectionName === 'administrators'
-          ? { password: user.password }
+          ? { password: user.password, _id: user._id }
           : { _id: user._id };
       const accessToken = __signToken(data);
       return { ...user.toJson(), accessToken };

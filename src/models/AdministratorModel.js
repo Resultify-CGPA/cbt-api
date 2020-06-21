@@ -3,13 +3,22 @@ import bcrypt from 'bcrypt';
 
 const AdminSchema = new Schema(
   {
+    status: {
+      type: Boolean,
+      default: true
+    },
     name: {
       type: String,
       required: true
     },
+    isRootAdmin: {
+      type: Boolean,
+      default: false
+    },
     username: {
       type: String,
-      required: true
+      required: true,
+      unique: true
     },
     password: {
       type: String,
@@ -17,7 +26,8 @@ const AdminSchema = new Schema(
     },
     email: {
       type: String,
-      required: true
+      required: true,
+      unique: true
     },
     accountType: {
       type: String,
