@@ -1,24 +1,44 @@
 /* eslint-disable implicit-arrow-linebreak */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-underscore-dangle */
+import _ from 'lodash';
+
 import Response from '../utils/response';
 import AdminService from '../services/administratorService';
 import UserService from '../services/userService';
 import ExamService from '../services/examService';
 import PinsService from '../services/pinsService';
+import Departments from '../models/Departments';
 
 const __validateBioData = (bioData) =>
   bioData.reduce(
     async (acc, cur) => {
       acc = await acc;
-      const user = await UserService.getOneUser({ matric: cur.matric });
+      let user = await UserService.getOneUser({ matric: cur.matric });
       if (!user) {
-        return {
-          ...acc,
-          errors: [...acc.errors, `${cur.matric} is not registered`]
-        };
+        const department = await Departments.findOne({
+          department: cur.department
+        });
+        if (!department || !cur.name) {
+          return {
+            ...acc,
+            errors: [
+              ...acc.errors,
+              `${cur.matric} is not registered and we need a valid name and department to create a student account`
+            ]
+          };
+        }
+        user = await UserService.createUsers({
+          matric: cur.matric,
+          faculty: department.faculty,
+          department: department._id,
+          name: cur.name
+        });
       }
-      return { ...acc, bioData: [...acc.bioData, { user: user._id }] };
+      return {
+        ...acc,
+        bioData: [...acc.bioData, { ca: cur.ca, user: user._id }]
+      };
     },
     {
       bioData: [],
@@ -554,28 +574,6 @@ class AdminController {
             );
           }
         }
-        let check = await __validateBioData(updateExam.bioData || []);
-        if (check.errors.length > 0) {
-          return Response.customResponse(
-            res,
-            400,
-            'fix the following:',
-            check.errors
-          );
-        }
-        updateExam.bioData = check.bioData;
-        if (updateExam.questions) {
-          check = await __validateExamQuestions(updateExam.questions);
-          if (check.errors.length > 0) {
-            return Response.customResponse(
-              res,
-              400,
-              'fix the following:',
-              check.errors
-            );
-          }
-          updateExam.questions = check.questions;
-        }
         const updated = await ExamService.updateOneExam({ _id }, req.body);
         return Response.customResponse(res, 200, 'updated exam:', updated);
       } catch (error) {
@@ -608,6 +606,364 @@ class AdminController {
       try {
         const pins = await PinsService.getAllPins();
         return Response.customResponse(res, 200, 'the pins:', pins);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * Gets one exam's biodata
+   * @returns {function} middleware function
+   */
+  static getOneExamsBiodata() {
+    return async (req, res, next) => {
+      try {
+        const { exam: _id } = req.params;
+        const exam = await ExamService.getOneExam({ _id });
+        if (!exam) {
+          return Response.notFoundError(res, 'no exam exits with that ID');
+        }
+        return Response.customResponse(res, 200, 'biodata:', exam.bioData);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * adds new biodata
+   * @returns {function} middleware function
+   */
+  static createBioData() {
+    return async (req, res, next) => {
+      try {
+        const { exam: _id } = req.params;
+        let exam = await ExamService.getOneExam({ _id });
+        if (!exam) {
+          return Response.notFoundError(res, 'no exam exits with that ID');
+        }
+        const check = await __validateBioData([req.body]);
+        if (check.errors.length > 0) {
+          return Response.badRequestError(res, check.errors[0]);
+        }
+        const biodata = {
+          ...exam.bioData.reduce(
+            (acc, cur) => ({
+              ...acc,
+              [cur.user._id]: {
+                user: cur.user._id,
+                ca: cur.ca,
+                exam: cur.exam,
+                submitted: cur.submitted
+              }
+            }),
+            {}
+          ),
+          ...{ [check.bioData[0].user]: check.bioData[0] }
+        };
+        exam.bioData = Object.values(biodata);
+        exam = await exam.save();
+        exam = await ExamService.getOneExam({ _id });
+        return Response.customResponse(res, 200, 'biodata:', exam.bioData);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * finds one biodata from array
+   * @param {bioData} bioData array of biodatas
+   * @param {bioDataID} bioDataID biodata ID
+   * @returns {object} bioData found
+   */
+  static getOneBioDataPrivate(bioData, bioDataID) {
+    return bioData.find((elem) => elem._id.toString() === bioDataID);
+  }
+
+  /**
+   * Gets one user biodata
+   * @returns {function} middleware
+   */
+  static getOneBioData() {
+    return async (req, res, next) => {
+      try {
+        const { exam: _id, bioDataID } = req.params;
+        const exam = await ExamService.getOneExam({ _id });
+        if (!exam) {
+          return Response.notFoundError(res, 'no exam exits with that ID');
+        }
+
+        return Response.customResponse(
+          res,
+          200,
+          'biodata:',
+          AdminController.getOneBioDataPrivate(exam.bioData, bioDataID)
+        );
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * deletes on biodata
+   * @returns {function} middleware
+   */
+  static deleteOneBiodata() {
+    return async (req, res, next) => {
+      try {
+        const { exam: _id, bioDataID } = req.params;
+        const exam = await ExamService.getOneExam({ _id });
+        if (!exam) {
+          return Response.notFoundError(res, 'no exam exits with that ID');
+        }
+        let ind;
+        exam.bioData.forEach(async (elem, i) => {
+          if (elem._id.toString() === bioDataID) {
+            ind = i;
+          }
+        });
+        if (typeof ind === 'undefined') {
+          return Response.badRequestError(res, 'no biodata with that ID');
+        }
+        exam.bioData.splice(ind, 1);
+        await exam.save();
+        return Response.customResponse(res, 200, 'deleted:', null);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * updates on user biodata
+   * @returns {function} middleware
+   */
+  static updateOneBioData() {
+    return async (req, res, next) => {
+      try {
+        const { exam: _id, bioDataID } = req.params;
+        let exam = await ExamService.getOneExam({ _id });
+        if (!exam) {
+          return Response.notFoundError(res, 'no exam exits with that ID');
+        }
+        let ind;
+        exam.bioData.forEach(async (elem, i) => {
+          if (elem._id.toString() === bioDataID) {
+            ind = i;
+          }
+        });
+        if (typeof ind === 'undefined') {
+          return Response.badRequestError(res, 'no biodata with that ID');
+        }
+        _.merge(exam.bioData[ind], req.body);
+        exam = await exam.save();
+        exam = await ExamService.getOneExam({ _id });
+        return Response.customResponse(res, 200, 'updated', exam.bioData[ind]);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * gets one sigle exam question
+   * @returns {function} middleware function
+   */
+  static getOneExamsQuestions() {
+    return async (req, res, next) => {
+      try {
+        const { exam: examID } = req.params;
+        const questions = await ExamService.getOneExamQuestions(examID);
+        if (!questions) {
+          return Response.notFoundError(res, 'no exam with that ID');
+        }
+        return Response.customResponse(res, 200, 'questions', questions);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * creates one exam question
+   * @returns {function} middleware function
+   */
+  static createsOneExamQuestion() {
+    return async (req, res, next) => {
+      try {
+        let question = req.body;
+        const check = await __validateExamQuestions({ questions: [question] });
+        if (check.errors.length > 0) {
+          return Response.badRequestError(res, check.errors[0]);
+        }
+        [question] = check.questions;
+        question = await ExamService.createOneExamQuestion(
+          req.params.exam,
+          question
+        );
+        if (!question) {
+          return Response.notFoundError(res, 'no exam with that ID');
+        }
+        return Response.customResponse(res, 200, 'question', question);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * gets one question
+   * @returns {function} middleware function
+   */
+  static getOneQuestion() {
+    return async (req, res, next) => {
+      try {
+        const { exam, question } = req.params;
+        const quest = await ExamService.getOneExamQuestion(exam, question);
+        if (quest === 0) {
+          return Response.notFoundError(res, 'no exam with that ID here');
+        }
+        if (quest === 1) {
+          return Response.notFoundError(res, 'no question with that ID');
+        }
+        return Response.customResponse(res, 200, 'question', quest);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * updates one questionn
+   * @returns {function} middleware function
+   */
+  static updateOneQuestion() {
+    return async (req, res, next) => {
+      try {
+        const { exam: examID, question: questionID } = req.params;
+        const check = await __validateExamQuestions({ questions: [req.body] });
+        if (check.errors.length > 0) {
+          return Response.badRequestError(res, check.errors[0]);
+        }
+        const question = await ExamService.updateOneExamQuestion(
+          {
+            examID,
+            questionID
+          },
+          check.questions[0]
+        );
+        if (question === null) {
+          return Response.notFoundError(res, 'no exam with that ID');
+        }
+        if (!question) {
+          return Response.notFoundError(res, 'no question with that ID');
+        }
+        return Response.customResponse(res, 200, 'updated', question);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * deletes one question
+   * @returns {function} middleware function
+   */
+  static deleteOneQuestion() {
+    return async (req, res, next) => {
+      try {
+        const { exam, question } = req.params;
+        const deleted = await ExamService.deleteOneExamQuestion(exam, question);
+        if (deleted === 0) {
+          return Response.notFoundError(res, 'no exam with that ID');
+        }
+        if (deleted === 1) {
+          return Response.notFoundError(res, 'no question with that ID');
+        }
+        return Response.customResponse(res, 200, 'deleted', null);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * gets one user
+   * @returns {function} middleware function
+   */
+  static getSingleUser() {
+    return async (req, res, next) => {
+      try {
+        let { user } = req.param;
+        user = await UserService.getOneUser({ _id: user });
+        if (!user) {
+          return Response.notFoundError(res, 'no student with that id');
+        }
+        return Response.customResponse(res, 200, 'student:', user);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * update single user
+   * @returns {function} middleware
+   */
+  static updateSingleUser() {
+    return async (req, res, next) => {
+      try {
+        const { user } = req.param;
+        const update = req.body;
+        const updated = await UserService.updateOneUser({ _id: user }, update);
+        if (updated === 0) {
+          return Response.badRequestError(
+            res,
+            `${user.faculty} is not a valid faculty`
+          );
+        }
+        if (updated === 1) {
+          return Response.badRequestError(
+            res,
+            `${user.department} is not a valid department`
+          );
+        }
+        if (updated === null) {
+          return Response.notFoundError(res, 'no user with that ID');
+        }
+        return Response.customResponse(res, 200, 'updated', updated);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * adds to student exam time
+   * @returns {function} middleware function
+   */
+  static addStudentTime() {
+    return async (req, res, next) => {
+      try {
+        const { user: _id } = req.params;
+        const { timeIncrease } = req.body;
+        const increase = await UserService.increaseStudentTime(
+          { _id },
+          timeIncrease
+        );
+        if (increase === null) {
+          return Response.notFoundError(res, 'no user with that ID');
+        }
+        if (increase === 0) {
+          return Response.notFoundError(
+            res,
+            'user has either finished or has not started exams'
+          );
+        }
+        return Response.customResponse(res, 200, 'updated', increase);
       } catch (error) {
         next(error);
       }

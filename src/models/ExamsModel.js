@@ -6,6 +6,10 @@ const ExamsModel = new Schema(
       type: String,
       required: true
     },
+    docStatus: {
+      type: Boolean,
+      default: true
+    },
     status: {
       type: Number,
       default: 0
@@ -26,9 +30,9 @@ const ExamsModel = new Schema(
           default: 0,
           max: 70
         },
-        submitted: {
-          type: Boolean,
-          default: false
+        status: {
+          type: Number,
+          default: 0
         }
       }
     ],

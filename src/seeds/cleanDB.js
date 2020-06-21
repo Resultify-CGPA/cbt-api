@@ -7,6 +7,7 @@ import Exams from '../models/ExamsModel';
 import Admins from '../models/AdministratorModel';
 import Departments from '../models/Departments';
 import Faculties from '../models/Faculties';
+import Pins from '../models/pins';
 
 const admin = {
   name: 'John Doe',
@@ -14,6 +15,12 @@ const admin = {
   password: 'password',
   email: 'admin@mail.com'
 };
+
+const pins = [
+  {
+    pin: 'password'
+  }
+];
 
 const exams = [
   {
@@ -86,7 +93,7 @@ const hierarchy = [
 
 export default async (
   runClean = true,
-  Models = [Users, Exams, Admins, Departments, Faculties]
+  Models = [Users, Exams, Admins, Departments, Faculties, Pins]
 ) => {
   if (!runClean) {
     return;
@@ -163,6 +170,7 @@ export default async (
     //   The seeding ends
 
     await Admins.create(admin);
+    await Pins.create(pins);
   } catch (error) {
     console.log(error);
   }

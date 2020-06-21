@@ -6,6 +6,8 @@ import User from '../models/UsersModel';
 import pinsService from './pinsService';
 import { __signToken } from './commonMethods';
 import ExamsModel from '../models/ExamsModel';
+import Faculties from '../models/Faculties';
+import Departments from '../models/Departments';
 // import ExamService from './examService';
 
 const examObject = (obj) => {
@@ -24,7 +26,7 @@ const saveExam = async (user) => {
     const { examId, answered } = user.exam;
     const exam = await ExamsModel.findById(examId._id);
     const userBioData = _.find(exam.bioData, { user: user._id });
-    userBioData.submitted = true;
+    userBioData.status = 2;
     answered.forEach((elem) => {
       // eslint-disable-next-line no-shadow
       const { questionId: _id, answer } = elem;
@@ -71,6 +73,7 @@ class UserService {
       if (!verPassword) {
         return null;
       }
+      await verPassword.remove();
       const accessToken = __signToken({ _id: user._id });
       return { ...user.toObject(), accessToken };
     } catch (error) {
@@ -98,7 +101,9 @@ class UserService {
       const newExam = async () => {
         const exam = await ExamsModel.findOne({
           status: 1,
-          bioData: { $elemMatch: { user: _id, submitted: false } }
+          bioData: {
+            $elemMatch: { user: _id, $or: [{ status: 0 }, { status: 1 }] }
+          }
         });
         return activeExam(exam);
       };
@@ -108,7 +113,7 @@ class UserService {
         const exam = await ExamsModel.findById(examId);
         if (timeStart + exam.timeAllowed * 1000 * 60 < Date.now()) {
           const userBioData = _.find(exam.bioData, { user: _id });
-          userBioData.submitted = true;
+          userBioData.status = 2;
           answered.forEach((elem) => {
             // eslint-disable-next-line no-shadow
             const { questionId: _id, answer } = elem;
@@ -151,6 +156,67 @@ class UserService {
   }
 
   /**
+   * updates a single user
+   * @param {object} param params to find user by
+   * @param {object} update params to update user with
+   * @returns {object} updated user object
+   */
+  static async updateOneUser(param, update) {
+    const user = await User.findOne(param);
+    if (!user) {
+      return null;
+    }
+    if (update.matric && update.matric !== user.matric) {
+      const check = await UserService.getOneUser({ matric: user.matric });
+      if (check) {
+        return 0;
+      }
+    }
+    if (update.faculty) {
+      const faculty = await Faculties.findOne({ faculty: update.faculty });
+      if (!faculty) {
+        return 0;
+      }
+      update.faculty = faculty._id;
+    }
+    if (update.department) {
+      const faculty = update.faculty ? update.faculty : user.faculty;
+      const check = await Departments.findOne({
+        department: update.department,
+        faculty
+      });
+      if (!check) {
+        return 1;
+      }
+      update.department = check._id;
+    }
+    _.merge(user, update);
+    await user.save();
+    const data = await UserService.getOneUser({ _id: user._id });
+    return data;
+  }
+
+  /**
+   * increases student exam in minutes
+   * @param {object} param params to find user with
+   * @param {number} timeIncrease time to add to student
+   * @returns {object} students exam object
+   */
+  static async increaseStudentTime(param, timeIncrease) {
+    let user = await User.findOne(param);
+    if (!user) {
+      return null;
+    }
+    if (!user.exam.inProgress) {
+      return 0;
+    }
+    timeIncrease *= 1000 * 60;
+    user.exam.timeStart += timeIncrease;
+    user = await user.save();
+    return user.exam;
+  }
+
+  /**
    * Starts exam
    * @param {object} user user object
    * @param {object} exam exam to start
@@ -178,8 +244,8 @@ class UserService {
         main.splice(index, 1);
         if (!examType && question.questionFor.length > 0) {
           const check = _.find(question.questionFor, {
-            faculty: user.faculty._id,
-            department: user.department._id
+            faculty: user.faculty.faculty,
+            department: user.department.department
           });
           if (!check) {
             return fetchRandomQuestions(main, res, count, examType, marksCount);
@@ -205,7 +271,15 @@ class UserService {
           }
         });
       }
-      const newExam = await ExamsModel.findById(exam._id);
+      let newExam = await ExamsModel.findById(exam._id);
+      let ind;
+      newExam.bioData.forEach((elem, i) => {
+        if (elem._id === user._id) {
+          ind = i;
+        }
+      });
+      newExam.bioData[ind].status = 1;
+      newExam = await newExam.save();
       _.merge(user, {
         exam: {
           examId: exam._id,
@@ -307,11 +381,14 @@ class UserService {
    */
   static async createUsers(users) {
     try {
-      if (users.length < 1) {
+      if (Array.isArray(users) && users.length < 1) {
         return [];
       }
       const created = await User.create(users);
-      return created.map((user) => user.toJson());
+      return (
+        (Array.isArray(created) && created.map((user) => user.toJson())) ||
+        created.toJson()
+      );
     } catch (error) {
       throw error;
     }

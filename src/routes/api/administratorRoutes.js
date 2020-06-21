@@ -28,6 +28,17 @@ router
   .get(AdminController.getAllUsers())
   .post(AdminValidation.validateCreationData(), AdminController.createUsers());
 router
+  .route('/users/:user')
+  .get(AdminController.getSingleUser())
+  .put(
+    AdminValidation.validateUserUpdateData(),
+    AdminController.updateSingleUser()
+  )
+  .post(
+    AdminValidation.validateTimeIncrementData(),
+    AdminController.addStudentTime()
+  );
+router
   .route('/faculty')
   .get(AdminController.getAllFaculty())
   .post(AdminValidation.validateFaculty(), AdminController.createFaculty());
@@ -59,6 +70,36 @@ router
     Parser.parseExamRoute(),
     AdminValidation.validateExamCreation(),
     AdminController.createExam()
+  );
+router
+  .route('/exams/:exam/biodatas/:bioDataID')
+  .get(AdminController.getOneBioData())
+  .delete(AdminController.deleteOneBiodata())
+  .put(
+    AdminValidation.validateBiodataUpdateData(),
+    AdminController.updateOneBioData()
+  );
+router
+  .route('/exams/:exam/biodatas')
+  .get(AdminController.getOneExamsBiodata())
+  .post(
+    AdminValidation.validateBiodataCreationData(),
+    AdminController.createBioData()
+  );
+router
+  .route('/exams/:exam/questions/:question')
+  .get(AdminController.getOneQuestion())
+  .put(
+    AdminValidation.validateQuestionUpdateData(),
+    AdminController.updateOneQuestion()
+  )
+  .delete(AdminController.deleteOneQuestion());
+router
+  .route('/exams/:exam/questions')
+  .get(AdminController.getOneExamsQuestions())
+  .post(
+    AdminValidation.validateQuestionCreationData(),
+    AdminController.createsOneExamQuestion()
   );
 router
   .route('/exams/:exam')

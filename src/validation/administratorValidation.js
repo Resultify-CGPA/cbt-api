@@ -111,8 +111,9 @@ class AdminValidation {
         bioData: Joi.array().items(
           Joi.object().keys({
             matric: Joi.string().required(),
-            ca: Joi.number().default(0),
-            exam: Joi.number().default(0)
+            name: Joi.string(),
+            department: Joi.string(),
+            ca: Joi.number().default(0)
           })
         ),
         title: Joi.string().required(),
@@ -156,36 +157,11 @@ class AdminValidation {
       const schema = Joi.object().keys({
         status: Joi.number(),
         course: Joi.string(),
-        bioData: Joi.array().items(
-          Joi.object().keys({ matric: Joi.string().required() })
-        ),
         title: Joi.string(),
         timeAllowed: Joi.number(),
         instructions: Joi.string(),
         questionsPerStudent: Joi.number(),
-        examType: Joi.boolean(),
-        questions: Joi.array().items(
-          Joi.object().keys({
-            questionFor: Joi.array().items(
-              Joi.object().keys({
-                faculty: Joi.string().required(),
-                department: Joi.string().required()
-              })
-            ),
-            type: Joi.boolean().required(),
-            correct: Joi.string().required(),
-            marks: Joi.number().required(),
-            question: Joi.string().required(),
-            options: Joi.object()
-              .keys({
-                a: Joi.string().required(),
-                b: Joi.string().required(),
-                c: Joi.string().required(),
-                d: Joi.string().required()
-              })
-              .required()
-          })
-        )
+        examType: Joi.boolean()
       });
       return validator(schema, req.body, res, next);
     };
@@ -201,6 +177,123 @@ class AdminValidation {
         count: Joi.number().required()
       });
       return validator(schema, req.body, res, next);
+    };
+  }
+
+  /**
+   * validates biodata creation
+   * @returns {function} middleware function
+   */
+  static validateBiodataCreationData() {
+    return (req, res, next) => {
+      const schema = Joi.object().keys({
+        matric: Joi.string().required(),
+        name: Joi.string(),
+        department: Joi.string(),
+        ca: Joi.number().default(0)
+      });
+      return validator(schema, req.body, res, next);
+    };
+  }
+
+  /**
+   * validates biodata update data
+   * @returns {function} middleware
+   */
+  static validateBiodataUpdateData() {
+    return async (req, res, next) => {
+      const schema = Joi.object().keys({
+        ca: Joi.number(),
+        status: Joi.number().max(2).min(0)
+      });
+      return validator(schema, req.body, res, next);
+    };
+  }
+
+  /**
+   * validates question creation data
+   * @return {function} middlewar function
+   */
+  static validateQuestionCreationData() {
+    return async (req, res, next) => {
+      const schema = Joi.object().keys({
+        questionFor: Joi.array().items(
+          Joi.object().keys({
+            faculty: Joi.string().required(),
+            department: Joi.string().required()
+          })
+        ),
+        type: Joi.boolean(),
+        marks: Joi.number().required(),
+        correct: Joi.string().required(),
+        question: Joi.string().required(),
+        options: Joi.object()
+          .keys({
+            a: Joi.string().required(),
+            b: Joi.string().required(),
+            c: Joi.string().required(),
+            d: Joi.string().required()
+          })
+          .required()
+      });
+      return validator(schema, req.body, res, next);
+    };
+  }
+
+  /**
+   * validates question update data
+   * @return {function} middlewar function
+   */
+  static validateQuestionUpdateData() {
+    return async (req, res, next) => {
+      const schema = Joi.object().keys({
+        questionFor: Joi.array().items(
+          Joi.object().keys({
+            faculty: Joi.string().required(),
+            department: Joi.string().required()
+          })
+        ),
+        type: Joi.boolean(),
+        marks: Joi.number(),
+        correct: Joi.string(),
+        question: Joi.string(),
+        options: Joi.object().keys({
+          a: Joi.string().required(),
+          b: Joi.string().required(),
+          c: Joi.string().required(),
+          d: Joi.string().required()
+        })
+      });
+      return validator(schema, req.body, res, next);
+    };
+  }
+
+  /**
+   * validates user update data
+   * @returns {function} middleware function
+   */
+  static validateUserUpdateData() {
+    return (req, res, next) => {
+      const schema = Joi.object().keys({
+        name: Joi.string(),
+        faculty: Joi.string(),
+        department: Joi.string(),
+        matric: Joi.string()
+      });
+      validator(schema, req.body, res, next);
+    };
+  }
+
+  /**
+   * validates time increament data
+   * @returns {function} middleware function
+   */
+  static validateTimeIncrementData() {
+    return (req, res, next) => {
+      const schema = Joi.object().keys({
+        timeIncrease: Joi.number().required()
+      });
+      validator(schema, req.body, res, next);
     };
   }
 }

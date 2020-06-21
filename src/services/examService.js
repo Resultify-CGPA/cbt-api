@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import _ from 'lodash';
 
 import ExamsModel from '../models/ExamsModel';
@@ -12,8 +13,13 @@ class ExamService {
     try {
       const exams = await ExamsModel.find()
         .populate({
-          path:
-            'bioData.user questions.questionFor.faculty questions.questionFor.department'
+          path: 'bioData.user',
+          populate: { path: 'department faculty' }
+        })
+        .populate({ path: 'questions.questionFor.faculty', select: 'faculty' })
+        .populate({
+          path: 'questions.questionFor.department',
+          select: 'department'
         })
         .exec();
       return _.orderBy(exams, 'status', 'desc');
@@ -29,7 +35,8 @@ class ExamService {
    */
   static async CreateExam(data) {
     try {
-      const exam = await ExamsModel.create(data);
+      let exam = await ExamsModel.create(data);
+      exam = await ExamService.getOneExam({ exam });
       return exam;
     } catch (error) {
       throw error;
@@ -45,9 +52,14 @@ class ExamService {
     try {
       const exam = await ExamsModel.findOne(param)
         .populate({
-          path:
-            'bioData.user questions.questionFor.faculty questions.questionFor.department',
-          select: 'name matric faculty department'
+          path: 'bioData.user',
+          select: 'name matric faculty department',
+          populate: { path: 'department faculty' }
+        })
+        .populate({ path: 'questions.questionFor.faculty', select: 'faculty' })
+        .populate({
+          path: 'questions.questionFor.department',
+          select: 'department'
         })
         .exec();
       return exam;
@@ -74,6 +86,117 @@ class ExamService {
     } catch (error) {
       throw error;
     }
+  }
+
+  /**
+   * returns the questions of an exam
+   * @param {string} examId exam id
+   * @returns {array} array of questions
+   */
+  static async getOneExamQuestions(examId) {
+    const exam = await ExamService.getOneExam({ _id: examId });
+    if (!exam) {
+      return exam;
+    }
+    return exam.questions;
+  }
+
+  /**
+   * creates a new exam question
+   * @param {string} examId exam id
+   * @param {object} data data to create question from
+   * @returns {object} created question
+   */
+  static async createOneExamQuestion(examId, data) {
+    let exam = await ExamService.getOneExam({ _id: examId });
+    if (!exam) {
+      return exam;
+    }
+    exam.questions.push(data);
+    exam = await exam.save();
+    exam = await ExamService.getOneExam({ _id: examId });
+    const res = exam.questions.find((elem) => elem.question === data.question);
+    return res;
+  }
+
+  /**
+   * gets one exam question
+   * @param {string} examID exam id
+   * @param {string} questionID question id
+   * @returns {null} nothing because doc was destroyed
+   */
+  static async getOneExamQuestion(examID, questionID) {
+    const exam = await ExamService.getOneExam({ _id: examID });
+    if (!exam) {
+      return 0;
+    }
+    let ind;
+    exam.questions.forEach((elem, i) => {
+      if (elem._id.toString() === questionID) {
+        ind = i;
+      }
+    });
+    if (typeof ind === 'undefined') {
+      return 1;
+    }
+    return exam.questions[ind];
+  }
+
+  /**
+   * update one exam question
+   * @param {object} param param to find question with
+   * @param {object} update update data
+   * @returns {object} updated question
+   */
+  static async updateOneExamQuestion(param, update) {
+    const { examID, questionID } = param;
+    let exam = await ExamsModel.findOne({ _id: examID });
+    if (!exam) {
+      return null;
+    }
+    let ind;
+    exam.questions.forEach((elem, i) => {
+      if (elem._id.toString() === questionID) {
+        ind = i;
+      }
+    });
+    if (typeof ind === 'undefined') {
+      return false;
+    }
+    _.merge(exam.questions[ind], update);
+    exam = await exam.save();
+    exam = await ExamService.getOneExam({ _id: examID });
+    exam.questions.forEach((elem, i) => {
+      if (elem._id.toString() === questionID) {
+        ind = i;
+      }
+    });
+    return exam.questions[ind];
+  }
+
+  /**
+   * deletes one exam question
+   * @param {string} examID exam id
+   * @param {string} questionID question id
+   * @returns {null} nothing because doc was destroyed
+   */
+  static async deleteOneExamQuestion(examID, questionID) {
+    const exam = await ExamService.getOneExam({ _id: examID });
+    if (!exam) {
+      return 0;
+    }
+    let ind;
+    exam.questions.forEach((elem, i) => {
+      if (elem._id.toString() === questionID) {
+        ind = i;
+      }
+    });
+    if (typeof ind === 'undefined') {
+      return 1;
+    }
+    exam.questions.splice(ind, 1);
+    await exam.save();
+    return null;
   }
 }
 
