@@ -4,7 +4,7 @@ export const randStringGen = (len, res = '') => {
     return res;
   }
   const charc = chars[Math.floor(Math.random() * chars.length)];
-  res += Math.random() > 0.5 ? charc.toUpperCase() : charc;
+  res += charc;
   return randStringGen(len, res);
 };
 
