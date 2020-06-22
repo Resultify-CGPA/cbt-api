@@ -8,7 +8,7 @@ export const randStringGen = (len, res = '') => {
   return randStringGen(len, res);
 };
 
-export const pins = (count, len = 24, res = []) => {
+export const pins = (count, len = 10, res = []) => {
   if (res.length >= count) {
     return res;
   }
