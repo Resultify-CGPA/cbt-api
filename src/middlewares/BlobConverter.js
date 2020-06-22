@@ -66,17 +66,19 @@ class ExcelParser {
         const excelParser = new ExcelParser();
         const questions = (
           await excelParser.parseExcelFile(req.body.base64, [
-            'questionFor',
             'type',
-            'marks',
-            'correct',
             'question',
-            'options'
+            'correct',
+            'options',
+            'marks',
+            'questionFor'
           ])
         ).map((question) => ({
           ...question,
           options: optionsParser(question.options),
-          questionFor: questionForParser(question.questionFor)
+          questionFor: question.questionFor
+            ? questionForParser(question.questionFor)
+            : []
         }));
         return res
           .status(200)

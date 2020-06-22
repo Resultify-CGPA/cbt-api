@@ -36,7 +36,7 @@ class ExamService {
   static async CreateExam(data) {
     try {
       let exam = await ExamsModel.create(data);
-      exam = await ExamService.getOneExam({ exam });
+      exam = await ExamService.getOneExam({ _id: exam._id });
       return exam;
     } catch (error) {
       throw error;

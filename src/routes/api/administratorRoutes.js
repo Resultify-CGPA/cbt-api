@@ -31,17 +31,6 @@ router.post(
   Parser.parseImageFile()
 );
 router
-  .route('/')
-  .get(AdminController.getAllAdmins())
-  .post(
-    AdminValidation.validateAdminCreationData(),
-    AdminController.createNewAdmin()
-  );
-router
-  .route('/:administrator')
-  .get(AdminController.getOneAdmin())
-  .delete(AdminController.deleteOneAdmin());
-router
   .route('/pins')
   .get(AdminController.getAlPins())
   .post(AdminController.createPins());
@@ -130,5 +119,16 @@ router
     AdminValidation.validateExamUpdateData(),
     AdminController.updateOneExam()
   );
+router
+  .route('/')
+  .get(AdminController.getAllAdmins())
+  .post(
+    AdminValidation.validateAdminCreationData(),
+    AdminController.createNewAdmin()
+  );
+router
+  .route('/:administrator')
+  .get(AdminController.getOneAdmin())
+  .delete(AdminController.deleteOneAdmin());
 
 export default router;

@@ -131,7 +131,7 @@ class AdminValidation {
               })
             ),
             marks: Joi.number().required(),
-            images: Joi.array().items(Joi.string()),
+            images: Joi.array(),
             type: Joi.boolean(),
             correct: Joi.string().required(),
             question: Joi.string().required(),
@@ -227,7 +227,7 @@ class AdminValidation {
         ),
         type: Joi.boolean(),
         marks: Joi.number().required(),
-        images: Joi.array().items(Joi.string()),
+        images: Joi.array().items(),
         correct: Joi.string().required(),
         question: Joi.string().required(),
         options: Joi.object()
@@ -257,7 +257,7 @@ class AdminValidation {
           })
         ),
         type: Joi.boolean(),
-        images: Joi.array().items(Joi.string()),
+        images: Joi.array().items(),
         marks: Joi.number(),
         correct: Joi.string(),
         question: Joi.string(),
