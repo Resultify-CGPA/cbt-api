@@ -105,6 +105,9 @@ class UserService {
             $elemMatch: { user: _id, $or: [{ status: 0 }, { status: 1 }] }
           }
         });
+        if (!exam) {
+          return exam;
+        }
         return activeExam(exam);
       };
       if (param.exam.inProgress) {
@@ -274,7 +277,7 @@ class UserService {
       let newExam = await ExamsModel.findById(exam._id);
       let ind;
       newExam.bioData.forEach((elem, i) => {
-        if (elem._id === user._id) {
+        if (elem.user.toString() === user._id.toString()) {
           ind = i;
         }
       });
