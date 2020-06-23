@@ -33,7 +33,7 @@ class UserController {
     return async (req, res, next) => {
       try {
         const { _id } = req.user.data;
-        const user = await UserService.getOneUser({ _id, status: true });
+        const user = await UserService.getOneUser({ status: true, _id });
         if (!user) {
           return Response.authorizationError(res, 'unauthorized');
         }
@@ -139,7 +139,7 @@ class UserController {
           req.body.answers
         );
         if (!answered) {
-          return Response.customResponse(res, 200, 'Exam submitted', {});
+          return Response.notFoundError(res, 'Exam submitted');
         }
         return Response.customResponse(res, 200, 'Answers added', answered);
       } catch (error) {

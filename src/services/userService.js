@@ -25,17 +25,22 @@ const saveExam = async (user) => {
   try {
     const { examId, answered } = user.exam;
     const exam = await ExamsModel.findById(examId._id);
-    const userBioData = _.find(exam.bioData, { user: user._id });
-    userBioData.status = 2;
+    let ind;
+    exam.bioData.forEach((elem, i) => {
+      if (elem.user.toString() === user._id.toString()) {
+        ind = i;
+      }
+    });
+    exam.bioData[ind].status = 2;
     answered.forEach((elem) => {
       // eslint-disable-next-line no-shadow
       const { questionId: _id, answer } = elem;
       const question = _.find(exam.questions, { _id });
       if (question.correct.toLowerCase() === answer.toLowerCase()) {
-        userBioData.exam += question.marks;
+        exam.bioData[ind].exam += question.marks;
       }
     });
-    await userBioData.save();
+    await exam.save();
     _.merge(user.exam, {
       inProgress: false,
       answered: [],
@@ -113,19 +118,25 @@ class UserService {
       if (param.exam.inProgress) {
         // eslint-disable-next-line object-curly-newline
         const { timeStart, examId, answered } = param.exam;
-        const exam = await ExamsModel.findById(examId);
+        let exam = await ExamsModel.findById(examId);
         if (timeStart + exam.timeAllowed * 1000 * 60 < Date.now()) {
-          const userBioData = _.find(exam.bioData, { user: _id });
-          userBioData.status = 2;
+          let ind;
+          exam.bioData.forEach((elem, i) => {
+            if (elem.user.toString() === param._id.toString()) {
+              ind = i;
+            }
+          });
+          exam.bioData[ind].status = 2;
+          exam = await exam.save();
           answered.forEach((elem) => {
             // eslint-disable-next-line no-shadow
             const { questionId: _id, answer } = elem;
             const question = _.find(exam.questions, { _id });
             if (question.correct.toLowerCase() === answer.toLowerCase()) {
-              userBioData.exam += question.marks;
+              exam.bioData[ind].exam += question.marks;
             }
           });
-          await userBioData.save();
+          exam = await exam.save();
           _.merge(param.exam, {
             inProgress: false,
             answered: [],
@@ -327,7 +338,7 @@ class UserService {
       }, {});
       user.exam.answered = Object.values({
         ...answered,
-        [answers.questionId]: answers
+        ...answers
       });
       user = await user.save();
       if (

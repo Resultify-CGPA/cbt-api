@@ -1008,7 +1008,7 @@ class AdminController {
         );
       }
       try {
-        const newUser = AdminService.createNewAdmin(req.body);
+        const newUser = await AdminService.createNewAdmin(req.body);
         return Response.customResponse(res, 200, 'admin', newUser);
       } catch (error) {
         next(error);
@@ -1063,8 +1063,7 @@ class AdminController {
         if (!data) {
           return Response.notFoundError(res, 'no administrator with that ID');
         }
-        data.status = false;
-        await data.save();
+        await data.remove();
         return Response.customResponse(res, 200, 'deleted', null);
       } catch (error) {
         next(error);
