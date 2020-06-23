@@ -1063,9 +1063,9 @@ class AdminController {
         if (!data) {
           return Response.notFoundError(res, 'no administrator with that ID');
         }
-        data.status = false;
-        await data.save();
-        return Response.customResponse(res, 200, 'deleted', null);
+        await data.remove();
+        const dataAll = await AdminService.getAllAdmins();
+        return Response.customResponse(res, 200, 'deleted', dataAll);
       } catch (error) {
         next(error);
       }
