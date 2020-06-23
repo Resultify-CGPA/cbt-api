@@ -976,7 +976,7 @@ class AdminController {
    */
   static getAllAdmins() {
     return async (req, res, next) => {
-      if (!req.user.isRootUser) {
+      if (!req.user.isRootAdmin) {
         return Response.customResponse(
           res,
           403,
@@ -999,7 +999,7 @@ class AdminController {
    */
   static createNewAdmin() {
     return async (req, res, next) => {
-      if (!req.user.isRootUser) {
+      if (!req.user.isRootAdmin) {
         return Response.customResponse(
           res,
           403,
@@ -1022,7 +1022,7 @@ class AdminController {
    */
   static getOneAdmin() {
     return async (req, res, next) => {
-      if (!req.user.isRootUser) {
+      if (!req.user.isRootAdmin) {
         return Response.customResponse(
           res,
           403,
@@ -1049,7 +1049,7 @@ class AdminController {
    */
   static deleteOneAdmin() {
     return async (req, res, next) => {
-      if (!req.user.isRootUser) {
+      if (!req.user.isRootAdmin) {
         return Response.customResponse(
           res,
           403,

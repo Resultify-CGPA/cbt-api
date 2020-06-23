@@ -4,11 +4,11 @@ export const randStringGen = (len, res = '') => {
     return res;
   }
   const charc = chars[Math.floor(Math.random() * chars.length)];
-  res += Math.random() > 0.5 ? charc.toUpperCase() : charc;
+  res += charc;
   return randStringGen(len, res);
 };
 
-export const pins = (count, len = 24, res = []) => {
+export const pins = (count, len = 10, res = []) => {
   if (res.length >= count) {
     return res;
   }
