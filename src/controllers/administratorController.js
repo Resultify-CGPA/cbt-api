@@ -1071,6 +1071,25 @@ class AdminController {
       }
     };
   }
+
+  /**
+   * gets results for an exam
+   * @returns {function} middleware function
+   */
+  static getResults() {
+    return async (req, res, next) => {
+      try {
+        const { exam } = req.params;
+        const result = await ExamService.getAllResults(exam);
+        if (!result) {
+          return Response.notFoundError(res, 'no exam with that ID');
+        }
+        return Response.customResponse(res, 200, 'results', result);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
 }
 
 export default AdminController;

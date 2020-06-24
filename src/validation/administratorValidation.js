@@ -160,6 +160,7 @@ class AdminValidation {
     return (req, res, next) => {
       const schema = Joi.object().keys({
         status: Joi.number(),
+        docStatus: Joi.boolean(),
         course: Joi.string(),
         title: Joi.string(),
         timeAllowed: Joi.number(),

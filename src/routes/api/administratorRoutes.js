@@ -112,6 +112,7 @@ router
     AdminValidation.validateQuestionCreationData(),
     AdminController.createsOneExamQuestion()
   );
+router.get('/exams/:exam/results', AdminController.getResults());
 router
   .route('/exams/:exam')
   .get(AdminController.getOneExam())

@@ -87,6 +87,7 @@ const hierarchy = [
         name: 'Ojonugwa Alikali Justice',
         matric: '13ms1023',
         level: 400,
+        ca: 30,
         department: 'mathematical sciences'
       }
     ],

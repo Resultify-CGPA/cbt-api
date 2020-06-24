@@ -2,6 +2,7 @@
 import _ from 'lodash';
 
 import ExamsModel from '../models/ExamsModel';
+import UserService from './userService';
 
 /** Classs for exam services */
 class ExamService {
@@ -11,7 +12,7 @@ class ExamService {
    */
   static async getAllExams() {
     try {
-      const exams = await ExamsModel.find()
+      const exams = await ExamsModel.find({ docStatus: true })
         .populate({
           path: 'bioData.user',
           populate: { path: 'department faculty' }
@@ -53,7 +54,7 @@ class ExamService {
       const exam = await ExamsModel.findOne(param)
         .populate({
           path: 'bioData.user',
-          select: 'name matric faculty department',
+          select: 'name matric faculty department level',
           populate: { path: 'department faculty' }
         })
         .populate({ path: 'questions.questionFor.faculty', select: 'faculty' })
@@ -197,6 +198,67 @@ class ExamService {
     exam.questions.splice(ind, 1);
     await exam.save();
     return null;
+  }
+
+  /**
+   * Middleware that submits for students
+   * whose time got finished before they
+   * could submit.
+   * @returns {function} middleware function
+   */
+  static ExamSubmitMiddleware() {
+    return async (req, res, next) => {
+      try {
+        const exams = await ExamsModel.find({
+          docStatus: true,
+          status: 1,
+          bioData: { $elemMatch: { status: 1 } }
+        });
+        exams.forEach(async (doc) => {
+          const newBiodata = await doc.bioData.reduce(async (acc, cur) => {
+            acc = await acc;
+            if (cur.status === 2) {
+              return [...acc, cur];
+            }
+            const user = await UserService.getOneUser({ _id: cur.user });
+            if (
+              // eslint-disable-next-line operator-linebreak
+              user.exam.timeStart + doc.timeAllowed * 1000 * 60 <
+              Date.now() + 1000 * 60
+            ) {
+              cur.status = 2;
+            }
+            return [...acc, cur];
+          }, []);
+          doc.bioData = newBiodata;
+          await doc.save();
+        });
+        next();
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * gets all results for an exam
+   * @param {string} examId exam's id to get result for
+   * @returns {object} array of results
+   */
+  static async getAllResults(examId) {
+    const exams = (await ExamService.getOneExam({ _id: examId })).toObject();
+    if (!exams) {
+      return null;
+    }
+    const result = exams.bioData.map((cur) => ({
+      ...cur.user,
+      department: cur.user.department.department,
+      faculty: cur.user.faculty.faculty,
+      ca: cur.ca,
+      exam: cur.exam,
+      status: cur.status
+    }));
+    return result;
   }
 }
 
