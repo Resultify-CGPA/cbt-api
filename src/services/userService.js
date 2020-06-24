@@ -246,11 +246,7 @@ class UserService {
         examType = true,
         marksCount = 0
       ) => {
-        if (
-          res.length === count ||
-          res.length >= main.length ||
-          marksCount >= 70
-        ) {
+        if (res.length === count || main.length <= 0 || marksCount >= 70) {
           return res;
         }
         const index = Math.floor(Math.random() * main.length);
