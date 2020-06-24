@@ -25,6 +25,10 @@ const UsersSchema = new Schema(
       required: true,
       ref: 'faculty'
     },
+    level: {
+      type: Number,
+      required: true
+    },
     exam: {
       examId: {
         type: Schema.Types.ObjectId,

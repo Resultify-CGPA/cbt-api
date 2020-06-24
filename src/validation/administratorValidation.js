@@ -40,6 +40,7 @@ class AdminValidation {
               name: Joi.string().required(),
               department: Joi.string().required(),
               faculty: Joi.string().required(),
+              level: Joi.number().required(),
               avatar: Joi.string()
             })
           )
@@ -192,6 +193,7 @@ class AdminValidation {
         matric: Joi.string().required(),
         name: Joi.string(),
         department: Joi.string(),
+        level: Joi.number().required(),
         ca: Joi.number().default(0)
       });
       return validator(schema, req.body, res, next);

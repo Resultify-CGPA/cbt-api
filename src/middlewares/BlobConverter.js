@@ -101,6 +101,7 @@ class ExcelParser {
           'matric',
           'name',
           'department',
+          'level',
           'ca'
         ]);
         return res

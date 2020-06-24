@@ -32,6 +32,7 @@ const __validateBioData = (bioData) =>
           matric: cur.matric,
           faculty: department.faculty,
           department: department._id,
+          level: cur.level,
           name: cur.name
         });
       }
