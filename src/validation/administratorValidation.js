@@ -115,6 +115,7 @@ class AdminValidation {
             matric: Joi.string().required(),
             name: Joi.string(),
             department: Joi.string(),
+            level: Joi.number().required(),
             ca: Joi.number().default(0)
           })
         ),
