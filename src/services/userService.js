@@ -16,7 +16,7 @@ const examObject = (obj) => {
     answered: objExam.answered,
     timeStart: objExam.timeStart,
     timeLeft: Math.floor(
-      objExam.timeAllowed - (Date.now() - objExam.timeStart) / (1000 * 60)
+      objExam.timeAllowed + 1 - (Date.now() - objExam.timeStart) / (1000 * 60)
     ),
     questions: objExam.questions
   };

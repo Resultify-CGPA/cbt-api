@@ -27,7 +27,7 @@ const exams = [
   {
     course: 'gst 103',
     title: 'Nigerian people and culture',
-    timeAllowed: 45,
+    timeAllowed: 0.5,
     status: 1,
     instructions: 'Keep your arms and feets in the vehicle at all times.',
     questionsPerStudent: 30,
@@ -88,6 +88,86 @@ const hierarchy = [
         matric: '13ms1023',
         level: 400,
         ca: 30,
+        department: 'mathematical sciences'
+      },
+
+      {
+        name: 'James Titus',
+        matric: '13ms1024',
+        level: 400,
+        ca: 20,
+        department: 'mathematical sciences'
+      },
+
+      {
+        name: 'Magnus Kpakol',
+        matric: '13ms1025',
+        level: 400,
+        ca: 10,
+        department: 'mathematical sciences'
+      },
+
+      {
+        name: 'Murder',
+        matric: '13ms1026',
+        level: 400,
+        ca: 28,
+        department: 'mathematical sciences'
+      },
+
+      {
+        name: 'What am i doing?',
+        matric: '13ms1028',
+        level: 400,
+        ca: 19,
+        department: 'mathematical sciences'
+      },
+
+      {
+        name: 'Oh my, i should be asleep',
+        matric: '13ms1029',
+        level: 400,
+        ca: 16,
+        department: 'mathematical sciences'
+      },
+
+      {
+        name: 'Unusual',
+        matric: '13ms1030',
+        level: 400,
+        ca: 19,
+        department: 'mathematical sciences'
+      },
+
+      {
+        name: 'Whats wrong with me',
+        matric: '13ms1031',
+        level: 400,
+        ca: 25,
+        department: 'mathematical sciences'
+      },
+
+      {
+        name: 'Owl',
+        matric: '13ms1032',
+        level: 400,
+        ca: 200,
+        department: 'mathematical sciences'
+      },
+
+      {
+        name: 'Night king',
+        matric: '13ms1033',
+        level: 400,
+        ca: 18,
+        department: 'mathematical sciences'
+      },
+
+      {
+        name: 'Horse Man',
+        matric: '13ms1034',
+        level: 400,
+        ca: 23,
         department: 'mathematical sciences'
       }
     ],
