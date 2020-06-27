@@ -18,10 +18,6 @@ class ExamService {
           populate: { path: 'department faculty' }
         })
         .populate({ path: 'questions.questionFor.faculty', select: 'faculty' })
-        .populate({
-          path: 'questions.questionFor.department',
-          select: 'department'
-        })
         .exec();
       return _.orderBy(exams, 'status', 'desc');
     } catch (error) {
@@ -58,10 +54,6 @@ class ExamService {
           populate: { path: 'department faculty' }
         })
         .populate({ path: 'questions.questionFor.faculty', select: 'faculty' })
-        .populate({
-          path: 'questions.questionFor.department',
-          select: 'department'
-        })
         .exec();
       return exam;
     } catch (error) {

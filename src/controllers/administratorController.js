@@ -55,10 +55,9 @@ const __validateExamQuestions = (exam) =>
         async (acc, cur) => {
           cur = {
             ...cur,
-            faculty: cur.faculty.toLowerCase(),
-            department: cur.department.toLowerCase()
+            faculty: cur.faculty.toLowerCase()
           };
-          const { faculty, department } = cur;
+          const { faculty } = cur;
           const facultyCheck = await AdminService.getOneFaculty({
             faculty
           });
@@ -68,27 +67,13 @@ const __validateExamQuestions = (exam) =>
               errors: [...(await acc.errors), `${faculty} is not a faculty`]
             };
           }
-          const departmentCheck = await AdminService.getOneDepartment({
-            department,
-            faculty: facultyCheck._id
-          });
-          if (!departmentCheck) {
-            return {
-              ...acc,
-              errors: [
-                ...(await acc.errors),
-                `${department} is not a department in ${faculty}`
-              ]
-            };
-          }
           return {
             ...acc,
             questionFor: [
               ...(await acc.questionFor),
               {
                 ...cur,
-                faculty: facultyCheck._id,
-                department: departmentCheck._id
+                faculty: facultyCheck._id
               }
             ]
           };

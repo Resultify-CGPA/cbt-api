@@ -44,6 +44,10 @@ const ExamsModel = new Schema(
       type: Number,
       required: true
     },
+    displayTime: {
+      type: Number,
+      required: true
+    },
     instructions: {
       type: String,
       required: true
@@ -64,10 +68,6 @@ const ExamsModel = new Schema(
             faculty: {
               type: Schema.Types.ObjectId,
               ref: 'faculty'
-            },
-            department: {
-              type: Schema.Types.ObjectId,
-              ref: 'department'
             }
           }
         ],
