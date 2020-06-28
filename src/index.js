@@ -33,7 +33,7 @@ mongoose
     console.log(err);
   });
 
-cleanDb(true);
+cleanDb(false);
 app.use(routes);
 // eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
@@ -54,7 +54,7 @@ app.use((error, req, res, next) => {
 });
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log('--------------------');
   console.log(
     `Server listening on port ${PORT}.\nGoto http://localhost:${PORT}/api/docs to see documetation`
