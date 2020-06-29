@@ -1,5 +1,5 @@
 export const randStringGen = (len, res = '') => {
-  const chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
+  const chars = '1234567890';
   if (res.length >= len) {
     return res;
   }
