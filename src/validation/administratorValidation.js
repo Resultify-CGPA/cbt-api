@@ -121,6 +121,7 @@ class AdminValidation {
         ),
         title: Joi.string().required(),
         timeAllowed: Joi.number().required(),
+        displayTime: Joi.number().required(),
         instructions: Joi.string().required(),
         questionsPerStudent: Joi.number().required(),
         examType: Joi.boolean(),
@@ -128,8 +129,7 @@ class AdminValidation {
           Joi.object().keys({
             questionFor: Joi.array().items(
               Joi.object().keys({
-                faculty: Joi.string().required(),
-                department: Joi.string().required()
+                faculty: Joi.string().required()
               })
             ),
             marks: Joi.number().required(),
@@ -164,6 +164,7 @@ class AdminValidation {
         course: Joi.string(),
         title: Joi.string(),
         timeAllowed: Joi.number(),
+        displayTime: Joi.number(),
         instructions: Joi.string(),
         questionsPerStudent: Joi.number(),
         examType: Joi.boolean()
@@ -225,8 +226,7 @@ class AdminValidation {
       const schema = Joi.object().keys({
         questionFor: Joi.array().items(
           Joi.object().keys({
-            faculty: Joi.string().required(),
-            department: Joi.string().required()
+            faculty: Joi.string().required()
           })
         ),
         type: Joi.boolean(),
@@ -256,8 +256,7 @@ class AdminValidation {
       const schema = Joi.object().keys({
         questionFor: Joi.array().items(
           Joi.object().keys({
-            faculty: Joi.string().required(),
-            department: Joi.string().required()
+            faculty: Joi.string().required()
           })
         ),
         type: Joi.boolean(),

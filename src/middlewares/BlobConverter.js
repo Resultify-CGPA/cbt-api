@@ -40,18 +40,7 @@ const optionsParser = (options) => {
 
 const questionForParser = (q) => {
   q = q.split(';');
-  return q.reduce((acc, cur) => {
-    cur = cur.split(':');
-    if (cur.length < 2) {
-      return acc;
-    }
-    const [faculty, depts] = cur;
-    const departments = depts.split(':');
-    return [
-      ...acc,
-      ...departments.reduce((g, d) => [...g, { faculty, department: d }], [])
-    ];
-  }, []);
+  return q.map((faculty) => ({ faculty }));
 };
 
 /** Class that handles excel parsing */
@@ -123,6 +112,7 @@ class ExcelParser {
     const file = saveExcel(base64);
     // Decoding excel file to array
     const data = await xlsxFile(file);
+    data.splice(0, 1);
     const resp = data.reduce(
       (acc, cur) => [
         ...acc,

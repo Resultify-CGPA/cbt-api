@@ -18,6 +18,7 @@ const examObject = (obj) => {
     timeLeft: Math.floor(
       objExam.timeAllowed + 1 - (Date.now() - objExam.timeStart) / (1000 * 60)
     ),
+    displayTime: objExam.displayTime,
     questions: objExam.questions
   };
 };
@@ -99,6 +100,7 @@ class UserService {
         instructions: exam.instructions,
         title: exam.title,
         timeAllowed: exam.timeAllowed,
+        displayTime: exam.displayTime,
         _id: exam._id,
         inProgress,
         submitted: false
@@ -254,8 +256,7 @@ class UserService {
         main.splice(index, 1);
         if (!examType && question.questionFor.length > 0) {
           const check = _.find(question.questionFor, {
-            faculty: user.faculty.faculty,
-            department: user.department.department
+            faculty: user.faculty.faculty
           });
           if (!check) {
             return fetchRandomQuestions(main, res, count, examType, marksCount);
@@ -277,6 +278,7 @@ class UserService {
             answered: user.exam.answered,
             timeStart: user.exam.timeStart,
             timeAllowed: user.exam.examId.timeAllowed,
+            displayTime: user.exam.examId.displayTime,
             questions: user.exam.questions
           }
         });
@@ -312,6 +314,7 @@ class UserService {
           answered: user.exam.answered,
           timeStart: user.exam.timeStart,
           timeAllowed: newExam.timeAllowed,
+          displayTime: newExam.displayTime,
           questions: user.exam.questions
         }
       });
@@ -349,6 +352,7 @@ class UserService {
           answered: user.exam.answered,
           timeStart: user.exam.timeStart,
           timeAllowed: user.exam.examId.timeAllowed,
+          displayTime: user.exam.examId.displayTime,
           questions: user.exam.questions
         }
       });

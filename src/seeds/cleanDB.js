@@ -236,10 +236,7 @@ export default async (
                       departments[
                         Math.floor(Math.random() * departments.length)
                       ];
-                    return [
-                      ...accc,
-                      { ...curr, faculty: f.faculty, department: f._id }
-                    ];
+                    return [...accc, { ...curr, faculty: f.faculty }];
                   })
                 }
               ],
