@@ -63,7 +63,8 @@ router
   .put(
     AdminValidation.validateDepartmentUpdate(),
     AdminController.updateOneDeparment()
-  );
+  )
+  .delete(AdminController.deleteOneDepartment());
 router
   .route('/faculty/:faculty/departments')
   .get(AdminController.getAllDepartment())
@@ -77,7 +78,8 @@ router
   .put(
     AdminValidation.validateFacultyUpdate(),
     AdminController.updateOneFaculty()
-  );
+  )
+  .delete(AdminController.deleteOneFaculty());
 router
   .route('/exams')
   .get(AdminController.getAllExams())

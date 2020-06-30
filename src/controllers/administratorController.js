@@ -470,6 +470,56 @@ class AdminController {
   }
 
   /**
+   * Deletes one faculty
+   * @returns {function} middleware function
+   */
+  static deleteOneFaculty() {
+    return async (req, res, next) => {
+      try {
+        const { faculty } = req.params;
+        const deleted = await AdminService.deleteOneFaculty(faculty);
+        if (deleted === 0) {
+          return Response.notFoundError(res, 'no faculty with that Id');
+        }
+        if (deleted === 1) {
+          return Response.badRequestError(
+            res,
+            'Operation failed: faculty has 1 or more departments'
+          );
+        }
+        return Response.customResponse(res, 200, 'Deleted:', null);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
+   * Deletes one department
+   * @returns {function} middleware function
+   */
+  static deleteOneDepartment() {
+    return async (req, res, next) => {
+      try {
+        const { department } = req.params;
+        const deleted = await AdminService.deleteOneDepartment(department);
+        if (deleted === 0) {
+          return Response.notFoundError(res, 'no department with that Id');
+        }
+        if (deleted === 1) {
+          return Response.badRequestError(
+            res,
+            'Operation failed: department has 1 or more students registered'
+          );
+        }
+        return Response.customResponse(res, 200, 'Deleted:', null);
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
    * Gets all exams
    * @returns {function} middleware function
    */

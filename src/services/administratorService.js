@@ -6,6 +6,7 @@ import CommonMethods from './commonMethods';
 import AdministratorModel from '../models/AdministratorModel';
 import Faculties from '../models/Faculties';
 import Departments from '../models/Departments';
+import UsersModel from '../models/UsersModel';
 
 const getFaculties = async () => {
   try {
@@ -200,6 +201,46 @@ class AdministratorService {
     } catch (error) {
       throw error;
     }
+  }
+
+  /**
+   * Deletes a faculty
+   * @param {string} Id faculty Id
+   * @returns {null | number} null if deleted, 0 if not found
+   * or 1 if deleting faculty has effects
+   */
+  static async deleteOneFaculty(Id) {
+    const faculty = await Faculties.findOne({ _id: Id });
+    if (!faculty) {
+      return 0;
+    }
+    const departments = await AdministratorService.getAllDepartments({
+      faculty: Id
+    });
+    if (departments && departments.length > 0) {
+      return 1;
+    }
+    await faculty.remove();
+    return null;
+  }
+
+  /**
+   * Deletes a department
+   * @param {string} Id department id
+   * @returns {null | number} null if deleted, 0 if not found
+   * or 1 if deleting departments have effects.
+   */
+  static async deleteOneDepartment(Id) {
+    const department = await AdministratorService.getOneDepartment({ _id: Id });
+    if (!department) {
+      return 0;
+    }
+    const users = await UsersModel.find({ department: Id });
+    if (users && users.length > 0) {
+      return 1;
+    }
+    department.remove();
+    return null;
   }
 
   /**
