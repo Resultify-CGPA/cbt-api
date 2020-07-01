@@ -20,6 +20,30 @@ const admin = {
 const pins = [
   {
     pin: 'password'
+  },
+  {
+    pin: 'password'
+  },
+  {
+    pin: 'password'
+  },
+  {
+    pin: 'password'
+  },
+  {
+    pin: 'password'
+  },
+  {
+    pin: 'password'
+  },
+  {
+    pin: 'password'
+  },
+  {
+    pin: 'password'
+  },
+  {
+    pin: 'password'
   }
 ];
 
