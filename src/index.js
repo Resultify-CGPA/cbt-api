@@ -33,7 +33,7 @@ mongoose
     console.log(err);
   });
 
-cleanDb(true);
+cleanDb(false);
 app.use(routes);
 // eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
@@ -45,6 +45,7 @@ app.use((error, req, res, next) => {
       : { ...error, stack: error.stack };
   console.log({
     message: error.message,
+    ...error,
     ...stack
   });
   res.status(status).json({

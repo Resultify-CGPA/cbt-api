@@ -50,9 +50,11 @@ const __validateBioData = (bioData) =>
 const __validateExamQuestions = (exam) =>
   exam.questions.reduce(
     async (accc, curr) => {
+      accc = await accc;
       curr.questionFor = curr.questionFor || [];
       const it = await curr.questionFor.reduce(
         async (acc, cur) => {
+          acc = await acc;
           cur = {
             ...cur,
             faculty: cur.faculty.toLowerCase()
@@ -64,13 +66,13 @@ const __validateExamQuestions = (exam) =>
           if (!facultyCheck) {
             return {
               ...acc,
-              errors: [...(await acc.errors), `${faculty} is not a faculty`]
+              errors: [...acc.errors, `"${faculty}" is not a faculty`]
             };
           }
           return {
             ...acc,
             questionFor: [
-              ...(await acc.questionFor),
+              ...acc.questionFor,
               {
                 ...cur,
                 faculty: facultyCheck._id

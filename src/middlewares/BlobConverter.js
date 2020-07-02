@@ -39,8 +39,8 @@ const optionsParser = (options) => {
 };
 
 const questionForParser = (q) => {
-  q = q.split(';');
-  return q.map((faculty) => ({ faculty }));
+  q = q.split(',');
+  return q.map((faculty) => ({ faculty: faculty.trim() }));
 };
 
 /** Class that handles excel parsing */
