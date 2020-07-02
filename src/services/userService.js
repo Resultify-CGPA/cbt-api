@@ -8,7 +8,6 @@ import { __signToken } from './commonMethods';
 import ExamsModel from '../models/ExamsModel';
 import Faculties from '../models/Faculties';
 import Departments from '../models/Departments';
-// import ExamService from './examService';
 
 const examObject = (obj) => {
   const { exam: objExam } = obj;
@@ -273,7 +272,10 @@ class UserService {
         return fetchRandomQuestions(main, res, count, examType, marksCount);
       };
 
-      if (currentExam.inProgress) {
+      if (
+        currentExam.inProgress &&
+        (await ExamsModel.findOne({ _id: currentExam.examId, status: 1 }))
+      ) {
         return examObject({
           exam: {
             answered: user.exam.answered,

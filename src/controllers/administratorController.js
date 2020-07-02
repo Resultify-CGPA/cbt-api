@@ -17,7 +17,7 @@ const __validateBioData = (bioData) =>
       let user = await UserService.getOneUser({ matric: cur.matric });
       if (!user) {
         const department = await Departments.findOne({
-          department: cur.department
+          department: cur.department.toLowerCase()
         });
         if (!department || !cur.name) {
           return {

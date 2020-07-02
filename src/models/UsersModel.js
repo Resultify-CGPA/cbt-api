@@ -58,6 +58,7 @@ const UsersSchema = new Schema(
             type: String,
             required: true
           },
+          images: [{ type: String }],
           options: {
             a: {
               type: String,
