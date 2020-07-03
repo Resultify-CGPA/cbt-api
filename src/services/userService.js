@@ -77,11 +77,15 @@ class UserService {
         e.name = 'LOGIN_ERROR';
         throw e;
       }
-      const verPassword = await pinsService.getOnePin({ pin });
+      const verPassword = await pinsService.getOnePin({
+        pin,
+        $or: [{ user: null }, { user: user._id }]
+      });
       if (!verPassword) {
         return null;
       }
-      await verPassword.remove();
+      verPassword.user = user._id;
+      await verPassword.save();
       const accessToken = __signToken({ _id: user._id });
       return { ...user.toObject(), accessToken };
     } catch (error) {
