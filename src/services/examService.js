@@ -216,7 +216,7 @@ class ExamService {
             if (
               // eslint-disable-next-line operator-linebreak
               user.exam.timeStart + doc.timeAllowed * 1000 * 60 <
-              Date.now() + 1000 * 60
+              Date.now() + 1000 * 60 * 0.5
             ) {
               cur.status = 2;
             }
