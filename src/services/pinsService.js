@@ -48,7 +48,7 @@ class PinsService {
   static pinsDeletionMiddleware() {
     return async (req, res, next) => {
       try {
-        const usedPins = await PinsModel.find({ $not: null });
+        const usedPins = await PinsModel.find({ user: { $ne: null } });
         await Promise.all(
           usedPins.map(async (elem) => {
             let date = new Date(elem.createdAt);
