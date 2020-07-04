@@ -35,14 +35,16 @@ const saveExam = async (user) => {
       }
     });
     exam.bioData[ind].status = 2;
+    let marks = 0;
     answered.forEach((elem) => {
       // eslint-disable-next-line no-shadow
       const { questionId: _id, answer } = elem;
       const question = _.find(exam.questions, { _id });
       if (question.correct.toLowerCase() === answer.toLowerCase()) {
-        exam.bioData[ind].exam += question.marks;
+        marks += question.marks;
       }
     });
+    exam.bioData[ind].exam = marks;
     await exam.save();
     _.merge(user.exam, {
       inProgress: false,
