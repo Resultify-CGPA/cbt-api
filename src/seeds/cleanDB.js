@@ -51,8 +51,8 @@ const exams = [
   {
     course: 'gst 103',
     title: 'Nigerian people and culture',
-    timeAllowed: 25.999,
-    displayTime: 30.999,
+    timeAllowed: 25.6,
+    displayTime: 30.6,
     status: 1,
     instructions: 'Keep your arms and feets in the vehicle at all times.',
     questionsPerStudent: 30,

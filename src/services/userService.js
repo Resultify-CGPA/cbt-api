@@ -234,7 +234,7 @@ class UserService {
     if (!user.exam.inProgress) {
       return 0;
     }
-    timeIncrease *= 1000 * 60;
+    timeIncrease *= 1000 * 60 * 60;
     user.exam.timeStart += timeIncrease;
     user = await user.save();
     return user.exam;
