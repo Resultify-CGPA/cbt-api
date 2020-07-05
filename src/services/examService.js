@@ -242,14 +242,30 @@ class ExamService {
     if (!exams) {
       return null;
     }
-    const result = exams.bioData.map((cur) => ({
-      ...cur.user,
-      department: cur.user.department.department,
-      faculty: cur.user.faculty.faculty,
-      ca: cur.ca,
-      exam: cur.exam,
-      status: cur.status
-    }));
+    const result = exams.bioData.map((cur) => {
+      const total = cur.ca + cur.exam;
+        return {
+        ...cur.user,
+        department: cur.user.department.department,
+        faculty: cur.user.faculty.faculty,
+        ca: cur.ca,
+        exam: cur.exam,
+        status: cur.status,
+        total,
+        // eslint-disable-next-line no-nested-ternary
+        grade: total >= 70
+                  ? 'A'
+                  // eslint-disable-next-line no-nested-ternary
+                  : total >= 60 && total < 70
+                    ? 'B'
+                    // eslint-disable-next-line no-nested-ternary
+                    : total >= 50 && total < 60
+                      ? 'C'
+                      : total >= 40 && total < 50
+                        ? 'D'
+                        : 'F'
+      };
+    });
     return result;
   }
 }
