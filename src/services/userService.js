@@ -46,11 +46,9 @@ const saveExam = async (user) => {
     });
     exam.bioData[ind].exam = marks;
     await exam.save();
-    _.merge(user.exam, {
-      inProgress: false,
-      answered: [],
-      questions: []
-    });
+    user.exam.inProgress = false;
+    user.exam.answered = [];
+    user.exam.questions = [];
     return await user.save();
   } catch (error) {
     throw error;
@@ -227,15 +225,17 @@ class UserService {
    * @returns {object} students exam object
    */
   static async increaseStudentTime(param, timeIncrease) {
-    let user = await User.findOne(param);
+    let user = await UserService.getOneUser(param);
     if (!user) {
       return null;
     }
     if (!user.exam.inProgress) {
       return 0;
     }
-    timeIncrease *= 1000 * 60 * 60;
+    timeIncrease *= user.exam.examId.timeAllowed / user.exam.examId.displayTime;
+    timeIncrease *= 1000 * 60;
     user.exam.timeStart += timeIncrease;
+    delete user.__v;
     user = await user.save();
     return user.exam;
   }
