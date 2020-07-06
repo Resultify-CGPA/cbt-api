@@ -203,8 +203,7 @@ class ExamService {
       try {
         const exams = await ExamsModel.find({
           docStatus: true,
-          status: 1,
-          bioData: { $elemMatch: { status: 1 } }
+          status: 1
         });
         exams.forEach(async (doc) => {
           const newBiodata = await doc.bioData.reduce(async (acc, cur) => {
@@ -218,6 +217,21 @@ class ExamService {
               user.exam.timeStart + doc.timeAllowed * 1000 * 60 <
               Date.now() + 1000 * 60 * 0.5
             ) {
+              const { answered } = user.exam;
+              let marks = 0;
+              answered.forEach((elem) => {
+                // eslint-disable-next-line no-shadow
+                const { questionId: _id, answer } = elem;
+                const question = _.find(doc.questions, { _id });
+                if (question.correct.toLowerCase() === answer.toLowerCase()) {
+                  marks += question.marks;
+                }
+              });
+              cur.exam = marks;
+              user.exam.inProgress = false;
+              user.exam.answered = [];
+              user.exam.questions = [];
+              await user.save();
               cur.status = 2;
             }
             return [...acc, cur];

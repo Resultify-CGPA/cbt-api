@@ -40,6 +40,31 @@ class PinsService {
     const pin = await PinsModel.findOne(param);
     return pin;
   }
+
+  /**
+   * goes through pins and delete pins active for more than a day
+   * @returns {function} middleware function
+   */
+  static pinsDeletionMiddleware() {
+    return async (req, res, next) => {
+      try {
+        const usedPins = await PinsModel.find({ user: { $ne: null } });
+        await Promise.all(
+          usedPins.map(async (elem) => {
+            let date = new Date(elem.createdAt);
+            date = new Date(date.getTime() + 1000 * 60 * 60 * 24);
+            if (date.getTime() < Date.now()) {
+              return elem.remove();
+            }
+            return elem;
+          })
+        );
+        next();
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
 }
 
 export default PinsService;

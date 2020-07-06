@@ -35,20 +35,20 @@ const saveExam = async (user) => {
       }
     });
     exam.bioData[ind].status = 2;
+    let marks = 0;
     answered.forEach((elem) => {
       // eslint-disable-next-line no-shadow
       const { questionId: _id, answer } = elem;
       const question = _.find(exam.questions, { _id });
       if (question.correct.toLowerCase() === answer.toLowerCase()) {
-        exam.bioData[ind].exam += question.marks;
+        marks += question.marks;
       }
     });
+    exam.bioData[ind].exam = marks;
     await exam.save();
-    _.merge(user.exam, {
-      inProgress: false,
-      answered: [],
-      questions: []
-    });
+    user.exam.inProgress = false;
+    user.exam.answered = [];
+    user.exam.questions = [];
     return await user.save();
   } catch (error) {
     throw error;
@@ -77,11 +77,15 @@ class UserService {
         e.name = 'LOGIN_ERROR';
         throw e;
       }
-      const verPassword = await pinsService.getOnePin({ pin });
+      const verPassword = await pinsService.getOnePin({
+        pin,
+        $or: [{ user: null }, { user: user._id }]
+      });
       if (!verPassword) {
         return null;
       }
-      await verPassword.remove();
+      verPassword.user = user._id;
+      await verPassword.save();
       const accessToken = __signToken({ _id: user._id });
       return { ...user.toObject(), accessToken };
     } catch (error) {
@@ -221,15 +225,17 @@ class UserService {
    * @returns {object} students exam object
    */
   static async increaseStudentTime(param, timeIncrease) {
-    let user = await User.findOne(param);
+    let user = await UserService.getOneUser(param);
     if (!user) {
       return null;
     }
     if (!user.exam.inProgress) {
       return 0;
     }
+    timeIncrease *= user.exam.examId.timeAllowed / user.exam.examId.displayTime;
     timeIncrease *= 1000 * 60;
     user.exam.timeStart += timeIncrease;
+    delete user.__v;
     user = await user.save();
     return user.exam;
   }
