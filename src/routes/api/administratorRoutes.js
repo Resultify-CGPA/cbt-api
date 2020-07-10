@@ -9,11 +9,10 @@ import Parser from '../../middlewares/BlobConverter';
 const router = Router();
 
 router.post(
-  '/signin',
-  UserValidation.validateSigninData(),
-  AdminController.signInAdmin()
+  '/image/upload',
+  AdminValidation.validateBase64(),
+  Parser.parseImageFile()
 );
-
 router.use(JWT.decodeToken(), AdminController.getFreshUser());
 router.post(
   '/spreadsheet/examquestion',
@@ -25,11 +24,38 @@ router.post(
   AdminValidation.validateBase64(),
   Parser.parseBioData()
 );
+router.use((req, res, next) => {
+  /**
+   * trims and coverts to lower case
+   * @param {any} param param to work with
+   * @returns {any} the return depends on the input
+   */
+  function trimAndParam(param) {
+    if (typeof param === 'string') {
+      return param.toLowerCase().trim();
+    }
+    if (typeof param === 'object') {
+      try {
+        return Object.keys(param).reduce((acc, cur) => {
+          return Array.isArray(param)
+            ? [...acc, trimAndParam(param[cur])]
+            : { ...acc, [cur]: trimAndParam(param[cur]) };
+        }, (Array.isArray(param) && []) || {});
+      } catch (error) {
+        return param;
+      }
+    }
+    return param;
+  }
+  req.body = trimAndParam(req.body);
+  next();
+});
 router.post(
-  '/image/upload',
-  AdminValidation.validateBase64(),
-  Parser.parseImageFile()
+  '/signin',
+  UserValidation.validateSigninData(),
+  AdminController.signInAdmin()
 );
+
 router
   .route('/pins')
   .get(AdminController.getAlPins())
