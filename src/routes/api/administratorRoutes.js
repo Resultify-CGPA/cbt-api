@@ -5,6 +5,7 @@ import UserValidation from '../../validation/userValidation';
 import AdminValidation from '../../validation/administratorValidation';
 import JWT from '../../middlewares/JWTMiddleware';
 import Parser from '../../middlewares/BlobConverter';
+import Trimer from '../../middlewares/TrimAndToLowerCase';
 
 const router = Router();
 
@@ -24,32 +25,7 @@ router.post(
   AdminValidation.validateBase64(),
   Parser.parseBioData()
 );
-router.use((req, res, next) => {
-  /**
-   * trims and coverts to lower case
-   * @param {any} param param to work with
-   * @returns {any} the return depends on the input
-   */
-  function trimAndParam(param) {
-    if (typeof param === 'string') {
-      return param.toLowerCase().trim();
-    }
-    if (typeof param === 'object') {
-      try {
-        return Object.keys(param).reduce((acc, cur) => {
-          return Array.isArray(param)
-            ? [...acc, trimAndParam(param[cur])]
-            : { ...acc, [cur]: trimAndParam(param[cur]) };
-        }, (Array.isArray(param) && []) || {});
-      } catch (error) {
-        return param;
-      }
-    }
-    return param;
-  }
-  req.body = trimAndParam(req.body);
-  next();
-});
+router.use(Trimer());
 router.post(
   '/signin',
   UserValidation.validateSigninData(),
