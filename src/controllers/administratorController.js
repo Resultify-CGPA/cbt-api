@@ -13,11 +13,12 @@ import Departments from '../models/Departments';
 const __validateBioData = (bioData) =>
   bioData.reduce(
     async (acc, cur) => {
+      cur.matric = cur.matric.toLowerCase().trim();
       acc = await acc;
       let user = await UserService.getOneUser({ matric: cur.matric });
       if (!user) {
         const department = await Departments.findOne({
-          department: cur.department.toLowerCase()
+          department: cur.department.toLowerCase().trim()
         });
         if (!department || !cur.name) {
           return {
@@ -33,7 +34,7 @@ const __validateBioData = (bioData) =>
           faculty: department.faculty,
           department: department._id,
           level: cur.level,
-          name: cur.name
+          name: cur.name.toLowerCase().trim()
         });
       }
       return {
@@ -57,7 +58,7 @@ const __validateExamQuestions = (exam) =>
           acc = await acc;
           cur = {
             ...cur,
-            faculty: cur.faculty.toLowerCase()
+            faculty: cur.faculty.toLowerCase().trim()
           };
           const { faculty } = cur;
           const facultyCheck = await AdminService.getOneFaculty({
