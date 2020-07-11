@@ -7,7 +7,6 @@ import Trimer from '../../middlewares/TrimAndToLowerCase';
 
 const router = Router();
 
-router.use(Trimer());
 router.post('/signin', validator.validateSigninData(), controller.signInUser());
 router.use(JWT.decodeToken(), controller.getFreshUser());
 router.get(
@@ -19,6 +18,7 @@ router.get(
       .json({ message: 'user', status: 200, data: req.user.toJson() })
   // eslint-disable-next-line function-paren-newline
 );
+router.use(Trimer());
 router
   .route('/exams')
   .get(controller.getExams())

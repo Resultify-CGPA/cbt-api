@@ -14,7 +14,6 @@ router.post(
   AdminValidation.validateBase64(),
   Parser.parseImageFile()
 );
-router.use(JWT.decodeToken(), AdminController.getFreshUser());
 router.post(
   '/spreadsheet/examquestion',
   AdminValidation.validateBase64(),
@@ -32,6 +31,7 @@ router.post(
   AdminController.signInAdmin()
 );
 
+router.use(JWT.decodeToken(), AdminController.getFreshUser());
 router
   .route('/pins')
   .get(AdminController.getAlPins())
