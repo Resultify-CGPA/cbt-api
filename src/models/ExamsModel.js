@@ -114,4 +114,24 @@ const ExamsModel = new Schema(
   }
 );
 
+ExamsModel.pre('save', async function preSave(next) {
+  if (!this.isModified('bioData')) return next();
+  try {
+    this.bioData = this.bioData.reduce(
+      (acc, cur) => [
+        ...acc,
+        {
+          ...cur,
+          ca: cur.ca > 30 ? 30 : cur.ca,
+          exam: cur.exam > 70 ? 70 : cur.exam
+        }
+      ],
+      []
+    );
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+});
+
 export default model('exams', ExamsModel);

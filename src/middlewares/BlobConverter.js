@@ -26,18 +26,6 @@ const saveImage = (base64) => {
   }
 };
 
-//  Methods
-const optionsParser = (options) => {
-  const arr = options.split(';');
-  return arr.reduce((acc, cur) => {
-    const opt = cur.split(':');
-    if (opt.length < 2) {
-      return acc;
-    }
-    return { ...acc, [opt[0]]: opt[1] };
-  }, {});
-};
-
 const questionForParser = (q) => {
   q = q.split(',');
   return q.map((faculty) => ({ faculty: faculty.trim() }));
@@ -58,13 +46,24 @@ class ExcelParser {
             'type',
             'question',
             'correct',
-            'options',
             'marks',
+            'option_a',
+            'option_b',
+            'option_c',
+            'option_d',
             'questionFor'
           ])
         ).map((question) => ({
-          ...question,
-          options: optionsParser(question.options),
+          type: question.type,
+          question: question.question,
+          correct: question.correct,
+          marks: question.marks,
+          options: {
+            a: question.option_a,
+            b: question.option_b,
+            c: question.option_c,
+            d: question.option_d
+          },
           questionFor: question.questionFor
             ? questionForParser(question.questionFor)
             : []
