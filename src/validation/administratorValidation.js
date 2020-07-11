@@ -139,10 +139,10 @@ class AdminValidation {
             question: Joi.string().required(),
             options: Joi.object()
               .keys({
-                a: Joi.string().required(),
-                b: Joi.string().required(),
-                c: Joi.string().required(),
-                d: Joi.string().required()
+                a: Joi.alternatives(Joi.string(), Joi.number()).required(),
+                b: Joi.alternatives(Joi.string(), Joi.number()).required(),
+                c: Joi.alternatives(Joi.string(), Joi.number()).required(),
+                d: Joi.alternatives(Joi.string(), Joi.number()).required()
               })
               .required()
           })
@@ -236,10 +236,10 @@ class AdminValidation {
         question: Joi.string().required(),
         options: Joi.object()
           .keys({
-            a: Joi.string().required(),
-            b: Joi.string().required(),
-            c: Joi.string().required(),
-            d: Joi.string().required()
+            a: Joi.alternatives(Joi.string(), Joi.number()).required(),
+            b: Joi.alternatives(Joi.string(), Joi.number()).required(),
+            c: Joi.alternatives(Joi.string(), Joi.number()).required(),
+            d: Joi.alternatives(Joi.string(), Joi.number()).required()
           })
           .required()
       });
@@ -265,10 +265,10 @@ class AdminValidation {
         correct: Joi.string(),
         question: Joi.string(),
         options: Joi.object().keys({
-          a: Joi.string().required(),
-          b: Joi.string().required(),
-          c: Joi.string().required(),
-          d: Joi.string().required()
+          a: Joi.alternatives(Joi.string(), Joi.number()).required(),
+          b: Joi.alternatives(Joi.string(), Joi.number()).required(),
+          c: Joi.alternatives(Joi.string(), Joi.number()).required(),
+          d: Joi.alternatives(Joi.string(), Joi.number()).required()
         })
       });
       return validator(schema, req.body, res, next);
