@@ -1,8 +1,6 @@
 /* eslint-disable implicit-arrow-linebreak */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-underscore-dangle */
-import _ from 'lodash';
-
 import Response from '../utils/response';
 import AdminService from '../services/administratorService';
 import UserService from '../services/userService';
@@ -13,12 +11,11 @@ import Departments from '../models/Departments';
 const __validateBioData = (bioData) =>
   bioData.reduce(
     async (acc, cur) => {
-      cur.matric = cur.matric.toLowerCase().trim();
       acc = await acc;
       let user = await UserService.getOneUser({ matric: cur.matric });
       if (!user) {
         const department = await Departments.findOne({
-          department: cur.department.toLowerCase().trim()
+          department: cur.department
         });
         if (!department || !cur.name) {
           return {
@@ -58,7 +55,7 @@ const __validateExamQuestions = (exam) =>
           acc = await acc;
           cur = {
             ...cur,
-            faculty: cur.faculty.toLowerCase().trim()
+            faculty: cur.faculty
           };
           const { faculty } = cur;
           const facultyCheck = await AdminService.getOneFaculty({
@@ -529,7 +526,10 @@ class AdminController {
   static getAllExams() {
     return async (req, res, next) => {
       try {
-        const exams = await ExamService.getAllExams();
+        let { page = 1, limit = 5 } = req.query;
+        page = parseInt(page, 10);
+        limit = parseInt(limit, 10);
+        const exams = await ExamService.getAllExams({ page, limit });
         return Response.customResponse(res, 200, 'exams:', exams);
       } catch (error) {
         next(error);
@@ -658,12 +658,16 @@ class AdminController {
   static getOneExamsBiodata() {
     return async (req, res, next) => {
       try {
-        const { exam: _id } = req.params;
-        const exam = await ExamService.getOneExam({ _id });
-        if (!exam) {
-          return Response.notFoundError(res, 'no exam exits with that ID');
-        }
-        return Response.customResponse(res, 200, 'biodata:', exam.bioData);
+        const { exam: examId } = req.params;
+        let { page = 1, limit = 5 } = req.query;
+        page = parseInt(page, 10);
+        limit = parseInt(limit, 10);
+        const exam = await ExamService.getOneExamsBiodata({
+          examId,
+          page,
+          limit
+        });
+        return Response.customResponse(res, 200, 'biodata:', exam);
       } catch (error) {
         next(error);
       }
@@ -678,47 +682,27 @@ class AdminController {
     return async (req, res, next) => {
       try {
         const { exam: _id } = req.params;
-        let exam = await ExamService.getOneExam({ _id });
+        const exam = await ExamService.getOneExam({ _id });
         if (!exam) {
           return Response.notFoundError(res, 'no exam exits with that ID');
         }
+
         const check = await __validateBioData([req.body]);
         if (check.errors.length > 0) {
           return Response.badRequestError(res, check.errors[0]);
         }
-        const biodata = {
-          ...exam.bioData.reduce(
-            (acc, cur) => ({
-              ...acc,
-              [cur.user._id]: {
-                user: cur.user._id,
-                ca: cur.ca,
-                exam: cur.exam,
-                submitted: cur.submitted
-              }
-            }),
-            {}
-          ),
-          ...{ [check.bioData[0].user]: check.bioData[0] }
-        };
-        exam.bioData = Object.values(biodata);
-        exam = await exam.save();
-        exam = await ExamService.getOneExam({ _id });
-        return Response.customResponse(res, 200, 'biodata:', exam.bioData);
+
+        const data = check.bioData[0];
+        const biodata = await ExamService.createOneBiodata({
+          examId: _id,
+          data
+        });
+
+        return Response.customResponse(res, 200, 'biodata:', biodata);
       } catch (error) {
         next(error);
       }
     };
-  }
-
-  /**
-   * finds one biodata from array
-   * @param {bioData} bioData array of biodatas
-   * @param {bioDataID} bioDataID biodata ID
-   * @returns {object} bioData found
-   */
-  static getOneBioDataPrivate(bioData, bioDataID) {
-    return bioData.find((elem) => elem._id.toString() === bioDataID);
   }
 
   /**
@@ -728,18 +712,13 @@ class AdminController {
   static getOneBioData() {
     return async (req, res, next) => {
       try {
-        const { exam: _id, bioDataID } = req.params;
-        const exam = await ExamService.getOneExam({ _id });
-        if (!exam) {
-          return Response.notFoundError(res, 'no exam exits with that ID');
+        const { exam: examId, bioDataID: _id } = req.params;
+        const biodata = await ExamService.getOneSingleBiodata({ _id, examId });
+        if (!biodata) {
+          return Response.notFoundError(res, 'could not find biodata');
         }
 
-        return Response.customResponse(
-          res,
-          200,
-          'biodata:',
-          AdminController.getOneBioDataPrivate(exam.bioData, bioDataID)
-        );
+        return Response.customResponse(res, 200, 'biodata:', biodata);
       } catch (error) {
         next(error);
       }
@@ -753,22 +732,14 @@ class AdminController {
   static deleteOneBiodata() {
     return async (req, res, next) => {
       try {
-        const { exam: _id, bioDataID } = req.params;
-        const exam = await ExamService.getOneExam({ _id });
-        if (!exam) {
-          return Response.notFoundError(res, 'no exam exits with that ID');
-        }
-        let ind;
-        exam.bioData.forEach(async (elem, i) => {
-          if (elem._id.toString() === bioDataID) {
-            ind = i;
-          }
+        const { exam: examId, bioDataID: _id } = req.params;
+        const deleted = await ExamService.deleteOneSingleBiodata({
+          examId,
+          _id
         });
-        if (typeof ind === 'undefined') {
-          return Response.badRequestError(res, 'no biodata with that ID');
+        if (deleted === false) {
+          return Response.notFoundError(res, 'biodata not found');
         }
-        exam.bioData.splice(ind, 1);
-        await exam.save();
         return Response.customResponse(res, 200, 'deleted:', null);
       } catch (error) {
         next(error);
@@ -783,24 +754,16 @@ class AdminController {
   static updateOneBioData() {
     return async (req, res, next) => {
       try {
-        const { exam: _id, bioDataID } = req.params;
-        let exam = await ExamService.getOneExam({ _id });
-        if (!exam) {
-          return Response.notFoundError(res, 'no exam exits with that ID');
-        }
-        let ind;
-        exam.bioData.forEach(async (elem, i) => {
-          if (elem._id.toString() === bioDataID) {
-            ind = i;
-          }
+        const { exam: examId, bioDataID: _id } = req.params;
+        const updated = await ExamService.updateOneSingleBiodata({
+          examId,
+          _id,
+          update: req.body
         });
-        if (typeof ind === 'undefined') {
-          return Response.badRequestError(res, 'no biodata with that ID');
+        if (!updated) {
+          return Response.notFoundError(res, 'could not find biodata');
         }
-        _.merge(exam.bioData[ind], req.body);
-        exam = await exam.save();
-        exam = await ExamService.getOneExam({ _id });
-        return Response.customResponse(res, 200, 'updated', exam.bioData[ind]);
+        return Response.customResponse(res, 200, 'updated', updated);
       } catch (error) {
         next(error);
       }
@@ -814,8 +777,15 @@ class AdminController {
   static getOneExamsQuestions() {
     return async (req, res, next) => {
       try {
-        const { exam: examID } = req.params;
-        const questions = await ExamService.getOneExamQuestions(examID);
+        const { exam: examId } = req.params;
+        let { page = 1, limit = 1 } = req.query;
+        page = parseInt(page, 10);
+        limit = parseInt(limit, 10);
+        const questions = await ExamService.getOneExamQuestions({
+          examId,
+          page,
+          limit
+        });
         if (!questions) {
           return Response.notFoundError(res, 'no exam with that ID');
         }
@@ -860,13 +830,10 @@ class AdminController {
   static getOneQuestion() {
     return async (req, res, next) => {
       try {
-        const { exam, question } = req.params;
-        const quest = await ExamService.getOneExamQuestion(exam, question);
-        if (quest === 0) {
-          return Response.notFoundError(res, 'no exam with that ID here');
-        }
-        if (quest === 1) {
-          return Response.notFoundError(res, 'no question with that ID');
+        const { exam: examId, question: _id } = req.params;
+        const quest = await ExamService.getOneExamQuestion({ examId, _id });
+        if (!quest) {
+          return Response.notFoundError(res, 'could not find question');
         }
         return Response.customResponse(res, 200, 'question', quest);
       } catch (error) {
@@ -882,21 +849,18 @@ class AdminController {
   static updateOneQuestion() {
     return async (req, res, next) => {
       try {
-        const { exam: examID, question: questionID } = req.params;
+        const { exam: examId, question: _id } = req.params;
         const check = await __validateExamQuestions({ questions: [req.body] });
         if (check.errors.length > 0) {
           return Response.badRequestError(res, check.errors[0]);
         }
         const question = await ExamService.updateOneExamQuestion(
           {
-            examID,
-            questionID
+            examId,
+            _id
           },
           check.questions[0]
         );
-        if (question === null) {
-          return Response.notFoundError(res, 'no exam with that ID');
-        }
         if (!question) {
           return Response.notFoundError(res, 'no question with that ID');
         }
@@ -914,13 +878,13 @@ class AdminController {
   static deleteOneQuestion() {
     return async (req, res, next) => {
       try {
-        const { exam, question } = req.params;
-        const deleted = await ExamService.deleteOneExamQuestion(exam, question);
-        if (deleted === 0) {
-          return Response.notFoundError(res, 'no exam with that ID');
-        }
-        if (deleted === 1) {
-          return Response.notFoundError(res, 'no question with that ID');
+        const { exam: examId, question: _id } = req.params;
+        const deleted = await ExamService.deleteOneExamQuestion({
+          examId,
+          _id
+        });
+        if (deleted === false) {
+          return Response.notFoundError(res, 'could not find question');
         }
         return Response.customResponse(res, 200, 'deleted', null);
       } catch (error) {

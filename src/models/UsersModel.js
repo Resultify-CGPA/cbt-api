@@ -29,57 +29,6 @@ const UsersSchema = new Schema(
       type: Number,
       required: true
     },
-    exam: {
-      examId: {
-        type: Schema.Types.ObjectId,
-        ref: 'exams'
-      },
-      timeStart: {
-        type: Number
-      },
-      answered: [
-        {
-          questionId: { type: Schema.Types.ObjectId },
-          answer: String
-        }
-      ],
-      inProgress: {
-        type: Boolean,
-        default: false
-      },
-      questions: [
-        {
-          questionId: Schema.Types.ObjectId,
-          type: {
-            type: Boolean,
-            default: true
-          },
-          question: {
-            type: String,
-            required: true
-          },
-          images: [{ type: String }],
-          options: {
-            a: {
-              type: String,
-              required: true
-            },
-            b: {
-              type: String,
-              required: true
-            },
-            c: {
-              type: String,
-              required: true
-            },
-            d: {
-              type: String,
-              required: true
-            }
-          }
-        }
-      ]
-    },
     name: {
       required: true,
       type: String
@@ -100,10 +49,7 @@ UsersSchema.pre('save', async function preSave(next) {
 
 UsersSchema.methods = {
   toJson: function toJson() {
-    const userObject = this.toObject();
-    delete userObject.exam;
-    delete userObject.exams;
-    return userObject;
+    return this;
   }
 };
 

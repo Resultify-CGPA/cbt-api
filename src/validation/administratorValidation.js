@@ -139,10 +139,20 @@ class AdminValidation {
             question: Joi.string().required(),
             options: Joi.object()
               .keys({
-                a: Joi.alternatives(Joi.string(), Joi.number()).required(),
-                b: Joi.alternatives(Joi.string(), Joi.number()).required(),
-                c: Joi.alternatives(Joi.string(), Joi.number()).required(),
-                d: Joi.alternatives(Joi.string(), Joi.number()).required()
+                a: Joi.alternatives(
+                  Joi.string(),
+                  Joi.number(),
+                  Joi.boolean()
+                ).required(),
+                b: Joi.alternatives(
+                  Joi.string(),
+                  Joi.number(),
+                  Joi.boolean()
+                ).required(),
+                c: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean()),
+                d: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean()),
+                e: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean()),
+                f: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean())
               })
               .required()
           })
@@ -210,7 +220,8 @@ class AdminValidation {
   static validateBiodataUpdateData() {
     return async (req, res, next) => {
       const schema = Joi.object().keys({
-        ca: Joi.number(),
+        ca: Joi.number().max(30),
+        exam: Joi.number().max(70),
         status: Joi.number().max(2).min(0)
       });
       return validator(schema, req.body, res, next);
@@ -236,10 +247,20 @@ class AdminValidation {
         question: Joi.string().required(),
         options: Joi.object()
           .keys({
-            a: Joi.alternatives(Joi.string(), Joi.number()).required(),
-            b: Joi.alternatives(Joi.string(), Joi.number()).required(),
-            c: Joi.alternatives(Joi.string(), Joi.number()).required(),
-            d: Joi.alternatives(Joi.string(), Joi.number()).required()
+            a: Joi.alternatives(
+              Joi.string(),
+              Joi.number(),
+              Joi.boolean()
+            ).required(),
+            b: Joi.alternatives(
+              Joi.string(),
+              Joi.number(),
+              Joi.boolean()
+            ).required(),
+            c: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean()),
+            d: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean()),
+            e: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean()),
+            f: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean())
           })
           .required()
       });
@@ -265,10 +286,20 @@ class AdminValidation {
         correct: Joi.string(),
         question: Joi.string(),
         options: Joi.object().keys({
-          a: Joi.alternatives(Joi.string(), Joi.number()).required(),
-          b: Joi.alternatives(Joi.string(), Joi.number()).required(),
-          c: Joi.alternatives(Joi.string(), Joi.number()).required(),
-          d: Joi.alternatives(Joi.string(), Joi.number()).required()
+          a: Joi.alternatives(
+            Joi.string(),
+            Joi.number(),
+            Joi.boolean()
+          ).required(),
+          b: Joi.alternatives(
+            Joi.string(),
+            Joi.number(),
+            Joi.boolean()
+          ).required(),
+          c: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean()),
+          d: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean()),
+          e: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean()),
+          f: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean())
         })
       });
       return validator(schema, req.body, res, next);

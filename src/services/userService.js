@@ -8,6 +8,7 @@ import { __signToken } from './commonMethods';
 import ExamsModel from '../models/ExamsModel';
 import Faculties from '../models/Faculties';
 import Departments from '../models/Departments';
+import BioData from '../models/BioData';
 
 const examObject = (obj) => {
   const { exam: objExam } = obj;
@@ -113,47 +114,42 @@ class UserService {
       });
       const newExam = async () => {
         const exam = await ExamsModel.findOne({
-          status: 1,
-          bioData: {
-            $elemMatch: { user: _id, $or: [{ status: 0 }, { status: 1 }] }
-          }
+          status: 1
         });
-        if (!exam) {
-          return exam;
+        const biodata = BioData.findOne({
+          user: _id,
+          status: 0,
+          examId: exam._id
+        });
+        if (!exam || !biodata) {
+          return null;
         }
         return activeExam(exam);
       };
-      if (param.exam.inProgress) {
+      const biodata = await BioData.findOne({ user: _id, status: 1 })
+        .populate({
+          path: 'examId answered.questionId'
+        })
+        .exec();
+      if (biodata) {
         // eslint-disable-next-line object-curly-newline
-        const { timeStart, examId, answered } = param.exam;
-        let exam = await ExamsModel.findById(examId);
-        if (timeStart + exam.timeAllowed * 1000 * 60 < Date.now()) {
-          let ind;
-          exam.bioData.forEach((elem, i) => {
-            if (elem.user.toString() === param._id.toString()) {
-              ind = i;
-            }
-          });
-          exam.bioData[ind].status = 2;
-          exam = await exam.save();
+        const { timeStart, answered } = biodata;
+        const { timeAllowed } = biodata.examId;
+        if (timeStart.getTime() + timeAllowed * 1000 * 60 < Date.now()) {
+          biodata.status = 2;
+          biodata.exam = 0;
           answered.forEach((elem) => {
             // eslint-disable-next-line no-shadow
-            const { questionId: _id, answer } = elem;
-            const question = _.find(exam.questions, { _id });
-            if (question.correct.toLowerCase() === answer.toLowerCase()) {
-              exam.bioData[ind].exam += question.marks;
+            const { questionId: question, answer } = elem;
+            if (question.correct === answer) {
+              biodata.exam += question.marks;
             }
           });
-          exam = await exam.save();
-          _.merge(param.exam, {
-            inProgress: false,
-            answered: [],
-            questions: []
-          });
-          await param.save();
+          biodata.exam = biodata.exam > 70 ? 70 : biodata.exam;
+          await biodata.save();
           return newExam();
         }
-        return activeExam(exam, true);
+        return activeExam({ ...biodata.examId }, true);
       }
       return newExam();
     } catch (error) {

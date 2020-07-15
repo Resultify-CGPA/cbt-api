@@ -3,6 +3,8 @@ import _ from 'lodash';
 
 import ExamsModel from '../models/ExamsModel';
 import UserService from './userService';
+import BioData from '../models/BioData';
+import Questions from '../models/Questions';
 
 /** Classs for exam services */
 class ExamService {
@@ -10,19 +12,15 @@ class ExamService {
    * Gets all exams
    * @returns {array} array of exams
    */
-  static async getAllExams() {
-    try {
-      const exams = await ExamsModel.find({ docStatus: true })
-        .populate({
-          path: 'bioData.user',
-          populate: { path: 'department faculty' }
-        })
-        .populate({ path: 'questions.questionFor.faculty', select: 'faculty' })
-        .exec();
-      return _.orderBy(exams, 'status', 'desc');
-    } catch (error) {
-      throw error;
-    }
+  static async getAllExams({ page = 1, limit = 5 }) {
+    const exams = await ExamsModel.find({})
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+    return {
+      exams,
+      count: await ExamsModel.countDocuments({ docStatus: true })
+    };
   }
 
   /**
@@ -31,13 +29,18 @@ class ExamService {
    * @returns {object} created exam
    */
   static async CreateExam(data) {
-    try {
-      let exam = await ExamsModel.create(data);
-      exam = await ExamService.getOneExam({ _id: exam._id });
-      return exam;
-    } catch (error) {
-      throw error;
-    }
+    let { bioData, questions } = data;
+    const exam = await ExamsModel.create(data);
+
+    //  Create exam biodata
+    bioData = bioData.map((elem) => ({ ...elem, examId: exam._id }));
+    bioData = await BioData.create(bioData);
+
+    //  Create exam questions
+    questions = questions.map((elem) => ({ ...elem, examId: exam._id }));
+    questions = await Questions.create(questions);
+
+    return { ...exam.toObject(), questions, bioData };
   }
 
   /**
@@ -46,19 +49,8 @@ class ExamService {
    * @returns {object} exam object
    */
   static async getOneExam(param) {
-    try {
-      const exam = await ExamsModel.findOne(param)
-        .populate({
-          path: 'bioData.user',
-          select: 'name matric faculty department level',
-          populate: { path: 'department faculty' }
-        })
-        .populate({ path: 'questions.questionFor.faculty', select: 'faculty' })
-        .exec();
-      return exam;
-    } catch (error) {
-      throw error;
-    }
+    const exam = await ExamsModel.findOne(param);
+    return exam;
   }
 
   /**
@@ -68,30 +60,25 @@ class ExamService {
    * @returns {object} updated exam
    */
   static async updateOneExam(param, data) {
-    try {
-      const exam = await ExamsModel.findOne(param);
-      if (!exam) {
-        return exam;
-      }
-      _.merge(exam, data);
-      const saved = await exam.save();
-      return saved;
-    } catch (error) {
-      throw error;
+    const exam = await ExamsModel.findOne(param);
+    if (!exam) {
+      return exam;
     }
+    _.merge(exam, data);
+    const saved = await exam.save();
+    return saved;
   }
 
   /**
    * returns the questions of an exam
-   * @param {string} examId exam id
    * @returns {array} array of questions
    */
-  static async getOneExamQuestions(examId) {
-    const exam = await ExamService.getOneExam({ _id: examId });
-    if (!exam) {
-      return exam;
-    }
-    return exam.questions;
+  static async getOneExamQuestions({ examId, page = 1, limit = 1 }) {
+    const questions = await Questions.find({ examId })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(1);
+    return { questions, count: await Questions.countDocuments({ examId }) };
   }
 
   /**
@@ -101,38 +88,23 @@ class ExamService {
    * @returns {object} created question
    */
   static async createOneExamQuestion(examId, data) {
-    let exam = await ExamService.getOneExam({ _id: examId });
+    const exam = await ExamService.getOneExam({ _id: examId });
     if (!exam) {
       return exam;
     }
-    exam.questions.push(data);
-    exam = await exam.save();
-    exam = await ExamService.getOneExam({ _id: examId });
-    const res = exam.questions.find((elem) => elem.question === data.question);
-    return res;
+    const question = await Questions.create({ ...data, examId });
+
+    return question;
   }
 
   /**
    * gets one exam question
-   * @param {string} examID exam id
-   * @param {string} questionID question id
+   * @param {string} _id question id
    * @returns {null} nothing because doc was destroyed
    */
-  static async getOneExamQuestion(examID, questionID) {
-    const exam = await ExamService.getOneExam({ _id: examID });
-    if (!exam) {
-      return 0;
-    }
-    let ind;
-    exam.questions.forEach((elem, i) => {
-      if (elem._id.toString() === questionID) {
-        ind = i;
-      }
-    });
-    if (typeof ind === 'undefined') {
-      return 1;
-    }
-    return exam.questions[ind];
+  static async getOneExamQuestion({ examId, _id }) {
+    const question = await Questions.findOne({ examId, _id });
+    return question;
   }
 
   /**
@@ -142,54 +114,129 @@ class ExamService {
    * @returns {object} updated question
    */
   static async updateOneExamQuestion(param, update) {
-    const { examID, questionID } = param;
-    let exam = await ExamsModel.findOne({ _id: examID });
-    if (!exam) {
-      return null;
-    }
-    let ind;
-    exam.questions.forEach((elem, i) => {
-      if (elem._id.toString() === questionID) {
-        ind = i;
-      }
-    });
-    if (typeof ind === 'undefined') {
+    const { examId, _id } = param;
+    let question = await Questions.findOne({ examId, _id });
+    if (!question) {
       return false;
     }
-    _.merge(exam.questions[ind], update);
-    exam = await exam.save();
-    exam = await ExamService.getOneExam({ _id: examID });
-    exam.questions.forEach((elem, i) => {
-      if (elem._id.toString() === questionID) {
-        ind = i;
-      }
-    });
-    return exam.questions[ind];
+    question.questionFor = update.questionFor
+      ? update.questionFor
+      : question.questionFor;
+    question.options = update.options ? update.options : question.options;
+    _.merge(question, update);
+    question = await question.save();
+
+    return question;
   }
 
   /**
    * deletes one exam question
-   * @param {string} examID exam id
-   * @param {string} questionID question id
    * @returns {null} nothing because doc was destroyed
    */
-  static async deleteOneExamQuestion(examID, questionID) {
-    const exam = await ExamService.getOneExam({ _id: examID });
-    if (!exam) {
-      return 0;
+  static async deleteOneExamQuestion({ examId, _id }) {
+    const question = await Questions.findOne({ _id, examId });
+    if (!question) {
+      return false;
     }
-    let ind;
-    exam.questions.forEach((elem, i) => {
-      if (elem._id.toString() === questionID) {
-        ind = i;
-      }
-    });
-    if (typeof ind === 'undefined') {
-      return 1;
-    }
-    exam.questions.splice(ind, 1);
-    await exam.save();
+    await question.remove();
     return null;
+  }
+
+  /**
+   * Gets biodatas for an exam
+   * @returns {array} an array of biodatas
+   */
+  static async getOneExamsBiodata({ examId, page = 1, limit = 5 }) {
+    const biodata = await BioData.find({ examId })
+      .populate({ path: 'user', populate: { path: 'faculty department' } })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(5)
+      .exec();
+    return { biodata, count: await BioData.countDocuments({ examId }) };
+  }
+
+  /**
+   * creates biodata for an exam
+   * @returns {object} created biodata
+   */
+  static async createOneBiodata({ examId, data }) {
+    let biodata = await BioData.findOne({ examId, user: data.user });
+    if (biodata) {
+      throw new Error('entry already exists. duplicates not allowed!');
+    }
+    biodata = await BioData.create({ ...data, examId });
+
+    return ExamService.getOneSingleBiodata({ examId, _id: biodata._id });
+  }
+
+  /**
+   * gets one biodata
+   * @returns {object} biodata object
+   */
+  static async getOneSingleBiodata({ examId, _id }) {
+    const biodata = await BioData.findOne({ examId, _id })
+      .populate({ path: 'user', populate: { path: 'faculty department' } })
+      .exec();
+    return biodata;
+  }
+
+  /**
+   * updates one single biodata
+   * @returns {object} biodata object
+   */
+  static async updateOneSingleBiodata({ examId, _id, update }) {
+    let biodata = await BioData.findOne({ examId, _id });
+    if (!biodata) {
+      return null;
+    }
+    _.merge(biodata, update);
+    biodata = await biodata.save();
+    return ExamService.getOneSingleBiodata({ examId, _id });
+  }
+
+  /**
+   * deletes one single biodata
+   * @returns {null} null because entry deleted
+   */
+  static async deleteOneSingleBiodata({ examId, _id }) {
+    const biodata = await BioData.findOne({ examId, _id });
+    if (!biodata) {
+      return false;
+    }
+    await biodata.remove();
+    return null;
+  }
+
+  /**
+   * gets all results for an exam
+   * @param {string} examId exam's id to get result for
+   * @returns {object} array of results
+   */
+  static async getAllResults(examId) {
+    const biodata = await BioData.find({ examId })
+      .populate({ path: 'user' })
+      .exec();
+    const result = biodata.map((cur) => {
+      cur = cur.toObject();
+      const total = cur.ca + cur.exam;
+      let grade = 'F';
+      if (total >= 70) grade = 'A';
+      if (total >= 60 && total < 70) grade = 'B';
+      if (total >= 50 && total < 60) grade = 'C';
+      if (total >= 40 && total < 50) grade = 'D';
+      return {
+        ...cur.user,
+        department: cur.user.department.department,
+        faculty: cur.user.faculty.faculty,
+        ca: cur.ca,
+        exam: cur.exam,
+        status: cur.status,
+        total,
+        grade
+      };
+    });
+    return result;
   }
 
   /**
@@ -244,43 +291,6 @@ class ExamService {
         next(error);
       }
     };
-  }
-
-  /**
-   * gets all results for an exam
-   * @param {string} examId exam's id to get result for
-   * @returns {object} array of results
-   */
-  static async getAllResults(examId) {
-    const exams = (await ExamService.getOneExam({ _id: examId })).toObject();
-    if (!exams) {
-      return null;
-    }
-    const result = exams.bioData.map((cur) => {
-      const total = cur.ca + cur.exam;
-        return {
-        ...cur.user,
-        department: cur.user.department.department,
-        faculty: cur.user.faculty.faculty,
-        ca: cur.ca,
-        exam: cur.exam,
-        status: cur.status,
-        total,
-        // eslint-disable-next-line no-nested-ternary
-        grade: total >= 70
-                  ? 'A'
-                  // eslint-disable-next-line no-nested-ternary
-                  : total >= 60 && total < 70
-                    ? 'B'
-                    // eslint-disable-next-line no-nested-ternary
-                    : total >= 50 && total < 60
-                      ? 'C'
-                      : total >= 40 && total < 50
-                        ? 'D'
-                        : 'F'
-      };
-    });
-    return result;
   }
 }
 

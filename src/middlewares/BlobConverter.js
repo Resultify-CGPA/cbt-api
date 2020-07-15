@@ -51,6 +51,8 @@ class ExcelParser {
             'option_b',
             'option_c',
             'option_d',
+            'option_e',
+            'option_f',
             'questionFor'
           ])
         ).map((question) => ({
@@ -115,7 +117,10 @@ class ExcelParser {
     const resp = data.reduce(
       (acc, cur) => [
         ...acc,
-        doc.reduce((a, c, i) => ({ ...a, [c]: cur[i] }), {})
+        doc.reduce((a, c, i) => {
+          if (!cur[i]) return a;
+          return { ...a, [c]: cur[i] };
+        }, {})
       ],
       []
     );
