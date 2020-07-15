@@ -263,7 +263,7 @@ class ExamService {
         department: cur.user.department.department,
         faculty: cur.user.faculty.faculty,
         ca: cur.ca,
-        exam: cur.exam,
+        exam: cur.status === 0 ? 'Abs' : cur.exam,
         status: cur.status,
         total,
         // eslint-disable-next-line no-nested-ternary
