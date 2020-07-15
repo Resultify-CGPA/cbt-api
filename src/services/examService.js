@@ -246,6 +246,13 @@ class ExamService {
     };
   }
 
+  // eslint-disable-next-line require-jsdoc
+  static titleCase(str) {
+    return str.split(' ')
+    .map((w) => w[0].toUpperCase() + w.substr(1).toLowerCase())
+    .join(' ');
+  }
+
   /**
    * gets all results for an exam
    * @param {string} examId exam's id to get result for
@@ -260,8 +267,9 @@ class ExamService {
       const total = cur.ca + cur.exam;
         return {
         ...cur.user,
-        department: cur.user.department.department,
-        faculty: cur.user.faculty.faculty,
+        name: this.titleCase(cur.user.name),
+        department: this.titleCase(cur.user.department.department),
+        faculty: this.titleCase(cur.user.faculty.faculty),
         ca: cur.ca,
         exam: cur.status < 2 ? 'Abs' : cur.exam,
         status: cur.status,
