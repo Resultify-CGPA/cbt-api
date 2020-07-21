@@ -9,10 +9,13 @@ import ExamsModel from '../models/ExamsModel';
 import Faculties from '../models/Faculties';
 import Departments from '../models/Departments';
 import BioData from '../models/BioData';
+import Questions from '../models/Questions';
 
 const examObject = (obj) => {
   const { exam: objExam } = obj;
   return {
+    title: objExam.title,
+    course: objExam.course,
     answered: objExam.answered,
     timeStart: objExam.timeStart,
     timeAllowed: objExam.timeAllowed,
@@ -25,35 +28,27 @@ const examObject = (obj) => {
     questions: objExam.questions
   };
 };
-const saveExam = async (user) => {
-  try {
-    const { examId, answered } = user.exam;
-    const exam = await ExamsModel.findById(examId._id);
-    let ind;
-    exam.bioData.forEach((elem, i) => {
-      if (elem.user.toString() === user._id.toString()) {
-        ind = i;
-      }
-    });
-    exam.bioData[ind].status = 2;
-    let marks = 0;
-    answered.forEach((elem) => {
-      // eslint-disable-next-line no-shadow
-      const { questionId: _id, answer } = elem;
-      const question = _.find(exam.questions, { _id });
-      if (question.correct.toLowerCase() === answer.toLowerCase()) {
-        marks += question.marks;
-      }
-    });
-    exam.bioData[ind].exam = marks;
-    await exam.save();
-    user.exam.inProgress = false;
-    user.exam.answered = [];
-    user.exam.questions = [];
-    return await user.save();
-  } catch (error) {
-    throw error;
-  }
+export const saveExam = async (biodata) => {
+  biodata = await BioData.findById(biodata._id)
+    .populate({
+      path: 'answered.questionId'
+    })
+    .exec();
+  const { answered } = biodata;
+  biodata.status = 2;
+  let marks = 0;
+  answered.forEach((elem) => {
+    // eslint-disable-next-line no-shadow
+    const { questionId: question, answer } = elem;
+    if (typeof question !== 'object') {
+      return;
+    }
+    if (question.correct === answer) {
+      marks += question.marks;
+    }
+  });
+  biodata.exam = marks > 70 ? 70 : marks;
+  await biodata.save();
 };
 
 /** Class that handles user service */
@@ -101,60 +96,51 @@ class UserService {
    */
   static async currentExam(param) {
     const { _id } = param;
-    try {
-      const activeExam = (exam, inProgress = false) => ({
-        course: exam.course,
-        instructions: exam.instructions,
-        title: exam.title,
-        timeAllowed: exam.timeAllowed,
-        displayTime: exam.displayTime,
-        _id: exam._id,
-        inProgress,
-        submitted: false
+    const activeExam = (exam, inProgress = false) => ({
+      course: exam.course,
+      instructions: exam.instructions,
+      title: exam.title,
+      timeAllowed: exam.timeAllowed,
+      displayTime: exam.displayTime,
+      _id: exam._id,
+      inProgress,
+      submitted: false
+    });
+    const newExam = async () => {
+      const exam = await ExamsModel.findOne({
+        status: 1
       });
-      const newExam = async () => {
-        const exam = await ExamsModel.findOne({
-          status: 1
-        });
-        const biodata = BioData.findOne({
-          user: _id,
-          status: 0,
-          examId: exam._id
-        });
-        if (!exam || !biodata) {
-          return null;
-        }
-        return activeExam(exam);
-      };
-      const biodata = await BioData.findOne({ user: _id, status: 1 })
-        .populate({
-          path: 'examId answered.questionId'
-        })
-        .exec();
-      if (biodata) {
-        // eslint-disable-next-line object-curly-newline
-        const { timeStart, answered } = biodata;
-        const { timeAllowed } = biodata.examId;
-        if (timeStart.getTime() + timeAllowed * 1000 * 60 < Date.now()) {
-          biodata.status = 2;
-          biodata.exam = 0;
-          answered.forEach((elem) => {
-            // eslint-disable-next-line no-shadow
-            const { questionId: question, answer } = elem;
-            if (question.correct === answer) {
-              biodata.exam += question.marks;
-            }
-          });
-          biodata.exam = biodata.exam > 70 ? 70 : biodata.exam;
-          await biodata.save();
-          return newExam();
-        }
-        return activeExam({ ...biodata.examId }, true);
+      const biodata = await BioData.findOne({
+        user: _id,
+        status: 0,
+        examId: exam._id
+      });
+      if (!exam || !biodata) {
+        return null;
       }
-      return newExam();
-    } catch (error) {
-      throw error;
+      return activeExam(exam);
+    };
+
+    //  Check: exam in session
+    const biodata = await BioData.findOne({ user: _id, status: 1 })
+      .populate({
+        path: 'examId answered.questionId'
+      })
+      .exec();
+
+    if (biodata) {
+      // eslint-disable-next-line object-curly-newline
+      const { timeStart } = biodata;
+      const { timeAllowed } = biodata.examId;
+
+      //  Check: exam time elapsed
+      if (timeStart.getTime() + timeAllowed * 1000 * 60 < Date.now()) {
+        saveExam(biodata);
+        return newExam();
+      }
+      return activeExam(biodata.examId, true);
     }
+    return newExam();
   }
 
   /**
@@ -165,7 +151,7 @@ class UserService {
   static async getOneUser(param) {
     try {
       const user = await User.findOne(param)
-        .populate({ path: 'exam.examId faculty department' })
+        .populate({ path: 'faculty department' })
         .exec();
       return user;
     } catch (error) {
@@ -216,24 +202,23 @@ class UserService {
 
   /**
    * increases student exam in minutes
-   * @param {object} param params to find user with
+   * @param {object} _id id to find biodata with
    * @param {number} timeIncrease time to add to student
    * @returns {object} students exam object
    */
-  static async increaseStudentTime(param, timeIncrease) {
-    let user = await UserService.getOneUser(param);
+  static async increaseStudentTime(_id, timeIncrease) {
+    let user = await BioData.findById(_id).populate({ path: 'examId' }).exec();
     if (!user) {
       return null;
     }
-    if (!user.exam.inProgress) {
+    if (!user.status !== 1) {
       return 0;
     }
-    timeIncrease *= user.exam.examId.timeAllowed / user.exam.examId.displayTime;
+    timeIncrease *= user.examId.timeAllowed / user.examId.displayTime;
     timeIncrease *= 1000 * 60;
-    user.exam.timeStart += timeIncrease;
-    delete user.__v;
+    user.timeStart = new Date(user.timeStart.getTime() + timeIncrease);
     user = await user.save();
-    return user.exam;
+    return user;
   }
 
   /**
@@ -243,91 +228,97 @@ class UserService {
    * @returns {object} started
    */
   static async startExam(user, exam) {
-    try {
-      const { exam: currentExam } = user;
-      const fetchRandomQuestions = (
-        main,
-        res = [],
-        count,
-        examType = true,
-        marksCount = 0
-      ) => {
-        if (res.length === count || main.length <= 0 || marksCount >= 70) {
-          return res;
-        }
-        const index = Math.floor(Math.random() * main.length);
-        const question = main[index];
-        main.splice(index, 1);
-        if (!examType && question.questionFor.length > 0) {
-          const check = _.find(question.questionFor, {
-            faculty: user.faculty.faculty
-          });
-          if (!check) {
-            return fetchRandomQuestions(main, res, count, examType, marksCount);
-          }
-        }
-        const q = question.toObject();
-        delete q.correct;
-        if (marksCount + q.marks > 70) {
+    let currentExam = await BioData.findOne({ user: user._id, status: 1 })
+      .populate({ path: 'examId questions.questionId', select: '-correct' })
+      .exec();
+    const fetchRandomQuestions = (
+      main,
+      res = [],
+      count,
+      examType = true,
+      marksCount = 0
+    ) => {
+      if (res.length === count || main.length <= 0 || marksCount >= 70) {
+        return res;
+      }
+      const index = Math.floor(Math.random() * main.length);
+      const question = main.splice(index, 1)[0];
+      if (!examType && question.questionFor.length > 0) {
+        const check = question.questionFor.find(
+          (elem) => elem.faculty.toString() === user.faculty._id.toString()
+        );
+        if (!check) {
           return fetchRandomQuestions(main, res, count, examType, marksCount);
         }
-        marksCount += q.marks;
-        res.push({ ...q, questionId: q._id });
-        return fetchRandomQuestions(main, res, count, examType, marksCount);
-      };
-
-      if (
-        currentExam.inProgress &&
-        (await ExamsModel.findOne({ _id: currentExam.examId, status: 1 }))
-      ) {
-        return examObject({
-          exam: {
-            answered: user.exam.answered,
-            timeStart: user.exam.timeStart,
-            timeAllowed: user.exam.examId.timeAllowed,
-            displayTime: user.exam.examId.displayTime,
-            questions: user.exam.questions
-          }
-        });
       }
-      let newExam = await ExamsModel.findById(exam._id);
-      let ind;
-      newExam.bioData.forEach((elem, i) => {
-        if (elem.user.toString() === user._id.toString()) {
-          ind = i;
-        }
-      });
-      newExam.bioData[ind].status = 1;
-      newExam = await newExam.save();
-      _.merge(user, {
-        exam: {
-          examId: exam._id,
-          instructions: newExam.instructions,
-          title: newExam.title,
-          timeStart: Date.now(),
-          answered: [],
-          questions: fetchRandomQuestions(
-            newExam.questions,
-            [],
-            newExam.questionPerStudent,
-            newExam.examType
-          ),
-          inProgress: true
-        }
-      });
-      await user.save();
+      if (marksCount + question.marks > 70) {
+        return fetchRandomQuestions(main, res, count, examType, marksCount);
+      }
+      marksCount += question.marks;
+      res.push({ questionId: question._id });
+      return fetchRandomQuestions(main, res, count, examType, marksCount);
+    };
+
+    if (currentExam) {
+      currentExam = currentExam.toObject();
+      currentExam.questions = currentExam.questions.map(
+        (elem) => elem.questionId
+      );
       return examObject({
         exam: {
-          answered: user.exam.answered,
-          timeStart: user.exam.timeStart,
-          timeAllowed: newExam.timeAllowed,
-          displayTime: newExam.displayTime,
-          questions: user.exam.questions
+          title: currentExam.examId.title,
+          course: currentExam.examId.course,
+          answered: currentExam.answered,
+          timeStart: currentExam.timeStart,
+          timeAllowed: currentExam.examId.timeAllowed,
+          displayTime: currentExam.examId.displayTime,
+          questions: currentExam.questions
         }
       });
-    } catch (error) {
-      throw error;
     }
+
+    let biodata = await BioData.findOne({ examId: exam._id, user: user._id })
+      .populate({ path: 'examId' })
+      .exec();
+    const {
+      timeAllowed,
+      displayTime,
+      questionPerStudent,
+      examType,
+      title,
+      course
+    } = biodata.examId;
+    const questions = await Questions.find({ examId: exam._id });
+    biodata.questions = [];
+    biodata.answered = [];
+    _.merge(biodata, {
+      timeStart: Date.now(),
+      answered: [],
+      status: 1,
+      questions: fetchRandomQuestions(
+        questions,
+        [],
+        questionPerStudent,
+        examType
+      )
+    });
+    biodata = await biodata.save();
+    biodata = await BioData.findOne({ user: user._id, status: 1 })
+      .populate({ path: 'examId questions.questionId', select: '-correct' })
+      .exec();
+    biodata = biodata.toObject();
+    biodata.questions = biodata.questions.map((elem) => elem.questionId);
+    return examObject({
+      exam: {
+        course,
+        title,
+        answered: biodata.answered,
+        timeStart: biodata.timeStart,
+        timeAllowed,
+        displayTime,
+        questions: biodata.questions
+      }
+    });
   }
 
   /**
@@ -337,35 +328,45 @@ class UserService {
    * @returns {object} exam object
    */
   static async answerExam(user, answers) {
-    try {
-      const answered = user.exam.answered.reduce((acc, cur) => {
-        delete cur._id;
-        return { [cur.questionId]: cur };
-      }, {});
-      user.exam.answered = Object.values({
-        ...answered,
-        ...answers
-      });
-      user = await user.save();
-      if (
-        user.exam.timeStart + user.exam.examId.timeAllowed * 1000 * 60 <
-        Date.now()
-      ) {
-        saveExam(user);
-        return null;
-      }
-      return examObject({
-        exam: {
-          answered: user.exam.answered,
-          timeStart: user.exam.timeStart,
-          timeAllowed: user.exam.examId.timeAllowed,
-          displayTime: user.exam.examId.displayTime,
-          questions: user.exam.questions
-        }
-      });
-    } catch (error) {
-      throw error;
+    let biodata = await BioData.findOne({ user: user._id, status: 1 })
+      .populate({ path: 'examId questions.questionId', select: '-correct' })
+      .exec();
+    if (!biodata) {
+      return null;
     }
+    // eslint-disable-next-line object-curly-newline
+    const { timeAllowed, displayTime, title, course } = biodata.examId;
+    // eslint-disable-next-line prefer-const
+    let { questions, timeStart } = biodata;
+    const answered = biodata.toObject().answered.reduce((acc, cur) => {
+      delete cur._id;
+      delete cur.__v;
+      return { ...acc, [cur.questionId]: cur };
+    }, {});
+    biodata.answered = Object.values({
+      ...answered,
+      ...Object.values(answers).reduce(
+        (acc, cur) => ({ ...acc, [cur.questionId]: cur }),
+        {}
+      )
+    });
+    biodata = await biodata.save();
+    if (timeStart + timeAllowed * 60000 < Date.now()) {
+      saveExam(biodata);
+      return null;
+    }
+    questions = questions.map((elem) => elem.questionId);
+    return examObject({
+      exam: {
+        title,
+        course,
+        answered: biodata.answered,
+        timeStart,
+        timeAllowed,
+        displayTime,
+        questions
+      }
+    });
   }
 
   /**
@@ -374,12 +375,9 @@ class UserService {
    * @returns {object} user object
    */
   static async submitExam(user) {
-    try {
-      user = await saveExam(user);
-      return user;
-    } catch (error) {
-      throw error;
-    }
+    const biodata = await BioData.findOne({ user: user._id, status: 1 });
+    await saveExam(biodata);
+    return user;
   }
 
   /**
@@ -388,7 +386,7 @@ class UserService {
    */
   static async getAllUsers() {
     try {
-      const users = await User.find().populate({ path: 'exams.examId' }).exec();
+      const users = await User.find();
       return _.orderBy(users, 'status', 'desc');
     } catch (error) {
       throw error;

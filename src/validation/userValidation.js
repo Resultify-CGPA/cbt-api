@@ -25,9 +25,7 @@ class UserValidation {
    */
   static validateAnswers() {
     return (req, res, next) => {
-      const schema = Joi.object().keys({
-        answers: Format.answers
-      });
+      const schema = Joi.object().keys({ answers: Joi.object().required() });
       return validator(schema, req.body, res, next);
     };
   }

@@ -11,5 +11,10 @@ export default {
     .required(),
   username: Joi.string().required(),
   password: Joi.string().required(),
-  answers: Joi.object().required()
+  answers: Joi.object()
+    .keys({
+      questionId: Joi.string().required(),
+      answer: Joi.string().required()
+    })
+    .required()
 };

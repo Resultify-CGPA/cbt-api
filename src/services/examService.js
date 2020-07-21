@@ -2,9 +2,12 @@
 import _ from 'lodash';
 
 import ExamsModel from '../models/ExamsModel';
-import UserService from './userService';
+import Users from '../models/UsersModel';
+import { saveExam } from './userService';
 import BioData from '../models/BioData';
 import Questions from '../models/Questions';
+import Faculties from '../models/Faculties';
+import Departments from '../models/Departments';
 
 /** Classs for exam services */
 class ExamService {
@@ -12,14 +15,14 @@ class ExamService {
    * Gets all exams
    * @returns {array} array of exams
    */
-  static async getAllExams({ page = 1, limit = 5 }) {
-    const exams = await ExamsModel.find({})
+  static async getAllExams({ page = 1, limit = 5, param = {} }) {
+    const exams = await ExamsModel.find(param)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
     return {
       exams,
-      count: await ExamsModel.countDocuments({ docStatus: true })
+      count: await ExamsModel.countDocuments({ docStatus: true, ...param })
     };
   }
 
@@ -35,12 +38,20 @@ class ExamService {
     //  Create exam biodata
     bioData = bioData.map((elem) => ({ ...elem, examId: exam._id }));
     bioData = await BioData.create(bioData);
+    bioData = await BioData.find({ examId: exam._id })
+      .populate({ path: 'user', populate: { path: 'faculty department' } })
+      .exec();
 
     //  Create exam questions
     questions = questions.map((elem) => ({ ...elem, examId: exam._id }));
     questions = await Questions.create(questions);
 
-    return { ...exam.toObject(), questions, bioData };
+    return {
+      exam: exam.toObject(),
+      questions,
+      bioData,
+      examCount: await ExamsModel.countDocuments({ docStatus: true })
+    };
   }
 
   /**
@@ -50,7 +61,10 @@ class ExamService {
    */
   static async getOneExam(param) {
     const exam = await ExamsModel.findOne(param);
-    return exam;
+    return {
+      exam,
+      count: await ExamsModel.countDocuments({ docStatus: true })
+    };
   }
 
   /**
@@ -146,14 +160,41 @@ class ExamService {
    * Gets biodatas for an exam
    * @returns {array} an array of biodatas
    */
-  static async getOneExamsBiodata({ examId, page = 1, limit = 5 }) {
-    const biodata = await BioData.find({ examId })
+  static async getOneExamsBiodata({
+    examId,
+    page = 1,
+    limit = 5,
+    param = {},
+    status = undefined
+  }) {
+    let query = { examId };
+    if (Object.keys(param).length) {
+      query = { examId, $or: [{ status }] };
+      let userQuery = {};
+      let $or = await Faculties.find(param.faculty);
+      $or = $or.map((elem) => ({ faculty: elem._id }));
+      userQuery = { $or };
+      $or = await Departments.find(param.department);
+      $or = $or.map((elem) => ({ department: elem._id }));
+      userQuery = { $or: [...userQuery.$or, ...$or] };
+      userQuery = { $or: [...userQuery.$or, ...param.student.$or] };
+      $or = await Users.find(userQuery);
+      $or = $or.map((elem) => ({ user: elem._id }));
+      query = { ...query, $or: [...query.$or, ...$or] };
+    }
+    const biodata = await BioData.find(query)
       .populate({ path: 'user', populate: { path: 'faculty department' } })
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(5)
       .exec();
-    return { biodata, count: await BioData.countDocuments({ examId }) };
+    return {
+      biodata,
+      count: await BioData.countDocuments(query),
+      done: await BioData.countDocuments({ ...query, status: 2 }),
+      pending: await BioData.countDocuments({ ...query, status: 0 }),
+      running: await BioData.countDocuments({ ...query, status: 1 })
+    };
   }
 
   /**
@@ -245,52 +286,33 @@ class ExamService {
    * could submit.
    * @returns {function} middleware function
    */
-  static ExamSubmitMiddleware() {
-    return async (req, res, next) => {
-      try {
-        const exams = await ExamsModel.find({
-          docStatus: true,
-          status: 1
-        });
-        exams.forEach(async (doc) => {
-          const newBiodata = await doc.bioData.reduce(async (acc, cur) => {
-            acc = await acc;
-            if (cur.status === 2) {
-              return [...acc, cur];
-            }
-            const user = await UserService.getOneUser({ _id: cur.user });
-            if (
-              // eslint-disable-next-line operator-linebreak
-              user.exam.timeStart + doc.timeAllowed * 1000 * 60 <
-              Date.now() + 1000 * 60 * 0.5
-            ) {
-              const { answered } = user.exam;
-              let marks = 0;
-              answered.forEach((elem) => {
-                // eslint-disable-next-line no-shadow
-                const { questionId: _id, answer } = elem;
-                const question = _.find(doc.questions, { _id });
-                if (question.correct.toLowerCase() === answer.toLowerCase()) {
-                  marks += question.marks;
-                }
-              });
-              cur.exam = marks;
-              user.exam.inProgress = false;
-              user.exam.answered = [];
-              user.exam.questions = [];
-              await user.save();
-              cur.status = 2;
-            }
-            return [...acc, cur];
-          }, []);
-          doc.bioData = newBiodata;
-          await doc.save();
-        });
-        next();
-      } catch (error) {
-        next(error);
-      }
-    };
+  static async ExamSubmitFunction() {
+    try {
+      const biodata = await BioData.find({
+        status: 1
+      })
+        .populate({ path: 'examId' })
+        .exec();
+      biodata.forEach(async (doc) => {
+        const { timeStart } = doc;
+        const { timeAllowed } = doc.examId;
+        if (
+          // eslint-disable-next-line operator-linebreak
+          timeStart.getTime() + timeAllowed * 1000 * 60 <
+          Date.now() + 1000 * 60 * 5
+        ) {
+          await saveExam(doc);
+        }
+      });
+    } catch (error) {
+      // could not submit an exam for some reason
+      console.log('EXAM_AUTO_SUBMIT_FAILED: ', {
+        message: error.message,
+        stack: error.stack,
+        ...error
+      });
+    }
+    setTimeout(ExamService.ExamSubmitFunction, 1000 * 60 * 5);
   }
 }
 

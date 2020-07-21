@@ -1,3 +1,4 @@
+/* eslint-disable operator-linebreak */
 /* eslint-disable implicit-arrow-linebreak */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-underscore-dangle */
@@ -527,9 +528,20 @@ class AdminController {
     return async (req, res, next) => {
       try {
         let { page = 1, limit = 5 } = req.query;
+        const { search } = req.query;
         page = parseInt(page, 10);
         limit = parseInt(limit, 10);
-        const exams = await ExamService.getAllExams({ page, limit });
+        let status;
+        if (search === 'pending') status = 0;
+        else if (search === 'running') status = 1;
+        else if (search === 'closed') status = 2;
+        const $regex = new RegExp(`.*${search}.*`, 'i');
+        const param =
+          (search && {
+            $or: [{ title: { $regex } }, { course: { $regex } }, { status }]
+          }) ||
+          {};
+        const exams = await ExamService.getAllExams({ page, limit, param });
         return Response.customResponse(res, 200, 'exams:', exams);
       } catch (error) {
         next(error);
@@ -606,7 +618,7 @@ class AdminController {
         const updateExam = req.body;
         if (updateExam.status && updateExam.status === 1) {
           const validate = await ExamService.getOneExam({ status: 1 });
-          if (validate) {
+          if (validate.exam) {
             return Response.badRequestError(
               res,
               'end active exam to make this one active'
@@ -660,12 +672,27 @@ class AdminController {
       try {
         const { exam: examId } = req.params;
         let { page = 1, limit = 5 } = req.query;
+        const { search } = req.query;
         page = parseInt(page, 10);
         limit = parseInt(limit, 10);
+        let status;
+        if (search === 'pending') status = 0;
+        else if (search === 'running') status = 1;
+        else if (search === 'closed') status = 2;
+        const $regex = new RegExp(`.*${search}.*`, 'i');
+        const param =
+          (search && {
+            faculty: { faculty: { $regex } },
+            department: { department: { $regex } },
+            student: { $or: [{ name: { $regex } }, { matric: { $regex } }] }
+          }) ||
+          {};
         const exam = await ExamService.getOneExamsBiodata({
           examId,
           page,
-          limit
+          limit,
+          param,
+          status
         });
         return Response.customResponse(res, 200, 'biodata:', exam);
       } catch (error) {
@@ -951,10 +978,10 @@ class AdminController {
   static addStudentTime() {
     return async (req, res, next) => {
       try {
-        const { user: _id } = req.params;
+        const { user } = req.params;
         const { timeIncrease } = req.body;
         const increase = await UserService.increaseStudentTime(
-          { _id },
+          user,
           timeIncrease
         );
         if (increase === null) {

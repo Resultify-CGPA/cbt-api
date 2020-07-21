@@ -12,14 +12,26 @@ const BiodataSchema = new Schema(
     },
     questions: [
       {
-        type: Schema.Types.ObjectId,
-        ref: 'question'
+        questionId: {
+          type: Schema.Types.ObjectId,
+          ref: 'question',
+          required: true,
+          unique: true
+        }
       }
     ],
     answered: [
       {
-        questionId: { type: Schema.Types.ObjectId, ref: 'question' },
-        answer: String
+        questionId: {
+          type: Schema.Types.ObjectId,
+          ref: 'question',
+          required: true,
+          unique: true
+        },
+        answer: {
+          type: String,
+          required: true
+        }
       }
     ],
     ca: {

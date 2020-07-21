@@ -9,6 +9,9 @@ const router = express.Router();
 router.use('/api/v1/', index);
 
 router.use('/api/static', express.static(path.resolve(__dirname, 'static')));
+router.use('/api/static', (req, res) => {
+  res.type('png').sendFile(path.resolve(__dirname, 'static/default.png'));
+});
 
 router.use('/api/docs', swagger.serve, swagger.setup(swaggerDoc));
 

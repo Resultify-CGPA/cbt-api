@@ -7,6 +7,8 @@ import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import routes from './routes';
 import cleanDb from './seeds/cleanDB';
+import ExamService from './services/examService';
+import PinsService from './services/pinsService';
 
 dotenv.config();
 
@@ -32,6 +34,8 @@ mongoose
     useCreateIndex: true
   })
   .then(() => {
+    ExamService.ExamSubmitFunction();
+    PinsService.pinsDeletionFunction();
     console.log('Connection to DB successful!');
   })
   .catch((err) => {
