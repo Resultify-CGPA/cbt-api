@@ -15,10 +15,6 @@ const QuestionSchema = new Schema(
         }
       }
     ],
-    type: {
-      type: Boolean,
-      default: true
-    },
     marks: {
       type: Number,
       required: true

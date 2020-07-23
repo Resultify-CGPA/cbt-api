@@ -240,7 +240,6 @@ class AdminValidation {
             faculty: Joi.string().required()
           })
         ),
-        type: Joi.boolean(),
         marks: Joi.number().required(),
         images: Joi.array().items(),
         correct: Joi.string().required(),

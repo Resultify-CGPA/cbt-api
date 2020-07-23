@@ -44,17 +44,17 @@ class ExcelParser {
         const excelParser = new ExcelParser();
         const questions = (
           await excelParser.parseExcelFile(req.body.base64, [
-            'type',
+            'sn',
             'question',
-            'correct',
-            'marks',
-            'questionFor',
             'option_a',
             'option_b',
             'option_c',
             'option_d',
             'option_e',
-            'option_f'
+            'option_f',
+            'correct',
+            'marks',
+            'questionFor'
           ])
         ).map((question) => {
           const optionC = question.option_c
@@ -70,7 +70,6 @@ class ExcelParser {
             ? { f: trimAndParam(question.option_f) }
             : {};
           return {
-            type: question.type,
             question: question.question,
             correct: trimAndParam(question.correct),
             marks: question.marks,
