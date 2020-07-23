@@ -2,6 +2,7 @@
 /* eslint-disable implicit-arrow-linebreak */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-underscore-dangle */
+import _ from 'lodash';
 import Response from '../utils/response';
 import AdminService from '../services/administratorService';
 import UserService from '../services/userService';
@@ -34,6 +35,9 @@ const __validateBioData = (bioData) =>
           level: cur.level,
           name: cur.name.toLowerCase().trim()
         });
+      }
+      if (_.find(acc.bioData, { user: user._id })) {
+        return acc;
       }
       return {
         ...acc,

@@ -2,6 +2,7 @@
 import xlsxFile from 'read-excel-file/node';
 import path from 'path';
 import fs from 'fs';
+import { trimAndParam } from './TrimAndToLowerCase';
 
 const saveExcel = (base64) => {
   try {
@@ -47,29 +48,45 @@ class ExcelParser {
             'question',
             'correct',
             'marks',
+            'questionFor',
             'option_a',
             'option_b',
             'option_c',
             'option_d',
             'option_e',
-            'option_f',
-            'questionFor'
+            'option_f'
           ])
-        ).map((question) => ({
-          type: question.type,
-          question: question.question,
-          correct: question.correct,
-          marks: question.marks,
-          options: {
-            a: question.option_a,
-            b: question.option_b,
-            c: question.option_c,
-            d: question.option_d
-          },
-          questionFor: question.questionFor
-            ? questionForParser(question.questionFor)
-            : []
-        }));
+        ).map((question) => {
+          const optionC = question.option_c
+            ? { c: trimAndParam(question.option_c) }
+            : {};
+          const optionD = question.option_d
+            ? { d: trimAndParam(question.option_d) }
+            : {};
+          const optionE = question.option_e
+            ? { e: trimAndParam(question.option_e) }
+            : {};
+          const optionF = question.option_f
+            ? { f: trimAndParam(question.option_f) }
+            : {};
+          return {
+            type: question.type,
+            question: question.question,
+            correct: trimAndParam(question.correct),
+            marks: question.marks,
+            options: {
+              a: trimAndParam(question.option_a),
+              b: trimAndParam(question.option_b),
+              ...optionC,
+              ...optionD,
+              ...optionE,
+              ...optionF
+            },
+            questionFor: question.questionFor
+              ? questionForParser(question.questionFor)
+              : []
+          };
+        });
         return res
           .status(200)
           .json({ message: 'question data:', status: 200, data: questions });
