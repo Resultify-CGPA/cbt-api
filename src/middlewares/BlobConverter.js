@@ -46,15 +46,15 @@ class ExcelParser {
           await excelParser.parseExcelFile(req.body.base64, [
             'sn',
             'question',
+            'correct',
+            'marks',
+            'questionFor',
             'option_a',
             'option_b',
             'option_c',
             'option_d',
             'option_e',
-            'option_f',
-            'correct',
-            'marks',
-            'questionFor'
+            'option_f'
           ])
         ).map((question) => {
           const optionC = question.option_c
@@ -134,7 +134,7 @@ class ExcelParser {
       (acc, cur) => [
         ...acc,
         doc.reduce((a, c, i) => {
-          if (!cur[i]) return a;
+          if (cur[i] === undefined) return a;
           return { ...a, [c]: cur[i] };
         }, {})
       ],
