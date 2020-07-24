@@ -7,7 +7,12 @@ import Trimer from '../../middlewares/TrimAndToLowerCase';
 
 const router = Router();
 
-router.post('/signin', validator.validateSigninData(), controller.signInUser());
+router.post(
+  '/signin',
+  Trimer(),
+  validator.validateSigninData(),
+  controller.signInUser()
+);
 router.use(JWT.decodeToken(), controller.getFreshUser());
 router.get(
   '/me',
