@@ -545,7 +545,11 @@ class AdminController {
             $or: [{ title: { $regex } }, { course: { $regex } }, { status }]
           }) ||
           {};
-        const exams = await ExamService.getAllExams({ page, limit, param });
+        const exams = await ExamService.getAllExams({
+          page,
+          limit,
+          param
+        });
         return Response.customResponse(res, 200, 'exams:', exams);
       } catch (error) {
         next(error);
@@ -600,7 +604,9 @@ class AdminController {
     return async (req, res, next) => {
       try {
         const { exam: _id } = req.params;
-        const exam = await ExamService.getOneExam({ _id });
+        const { active } = req.query;
+        const param = active ? { status: 1 } : { _id };
+        const exam = await ExamService.getOneExam(param);
         if (!exam) {
           return Response.notFoundError(res, 'no exam exits with that ID');
         }

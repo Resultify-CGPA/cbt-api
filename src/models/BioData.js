@@ -15,9 +15,7 @@ const BiodataSchema = new Schema(
         questionId: {
           type: Schema.Types.ObjectId,
           ref: 'question',
-          required: true,
-          unique: true,
-          sparse: true
+          required: true
         }
       }
     ],

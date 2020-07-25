@@ -5,7 +5,7 @@
  * @returns {any} the return depends on the input
  */
 export const trimAndParam = (param, curr) => {
-  if (typeof param === 'string' && curr !== 'password') {
+  if (typeof param === 'string' && curr !== 'password' && curr !== 'question') {
     return param.toLowerCase().trim();
   }
   if (typeof param === 'object') {
