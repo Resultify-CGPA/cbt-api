@@ -17,7 +17,7 @@ class ExamService {
    */
   static async getAllExams({ page = 1, limit = 5, param = {} }) {
     const exams = await ExamsModel.find(param)
-      .sort({ createdAt: -1 })
+      .sort([['_id', -1]])
       .skip((page - 1) * limit)
       .limit(limit);
     return {
@@ -89,7 +89,7 @@ class ExamService {
    */
   static async getOneExamQuestions({ examId, page = 1, limit = 1 }) {
     const questions = await Questions.find({ examId })
-      .sort({ createdAt: -1 })
+      .sort([['_id', -1]])
       .skip((page - 1) * limit)
       .limit(1);
     return { questions, count: await Questions.countDocuments({ examId }) };
@@ -184,7 +184,7 @@ class ExamService {
     }
     const biodata = await BioData.find(query)
       .populate({ path: 'user', populate: { path: 'faculty department' } })
-      .sort({ createdAt: -1 })
+      .sort([['_id', -1]])
       .skip((page - 1) * limit)
       .limit(5)
       .exec();
