@@ -12,6 +12,10 @@ const QuestionSchema = new Schema(
         faculty: {
           type: Schema.Types.ObjectId,
           ref: 'faculty'
+        },
+        department: {
+          type: Schema.Types.ObjectId,
+          ref: 'department'
         }
       }
     ],

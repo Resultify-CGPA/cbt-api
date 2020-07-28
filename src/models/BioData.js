@@ -35,16 +35,14 @@ const BiodataSchema = new Schema(
     ],
     ca: {
       type: Number,
-      default: 0,
-      max: 30
+      default: 0
     },
     timeStart: {
       type: Date
     },
     exam: {
       type: Number,
-      default: 0,
-      max: 70
+      default: 0
     },
     status: {
       type: Number,
@@ -53,11 +51,5 @@ const BiodataSchema = new Schema(
   },
   { timestamps: true }
 );
-
-BiodataSchema.pre('save', async function preSave(next) {
-  this.ca = this.ca > 30 ? 30 : this.ca;
-  this.exam = this.exam > 70 ? 70 : this.exam;
-  return next();
-});
 
 export default model('biodata', BiodataSchema);

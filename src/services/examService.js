@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import _ from 'lodash';
+import path from 'path';
 
 import ExamsModel from '../models/ExamsModel';
 import Users from '../models/UsersModel';
@@ -8,6 +9,7 @@ import BioData from '../models/BioData';
 import Questions from '../models/Questions';
 import Faculties from '../models/Faculties';
 import Departments from '../models/Departments';
+import { htmlToPdf, writeExcel } from '../utils';
 
 /** Classs for exam services */
 class ExamService {
@@ -252,13 +254,16 @@ class ExamService {
   /**
    * gets all results for an exam
    * @param {string} examId exam's id to get result for
+   * @param {boolean} xlxs whether to return pdf or xlxs
    * @returns {object} array of results
    */
-  static async getAllResults(examId) {
+  static async getAllResults(examId, xlxs) {
+    const exam = await ExamsModel.findOne({ _id: examId });
+    if (!exam) return exam;
     const biodata = await BioData.find({ examId })
-      .populate({ path: 'user' })
+      .populate({ path: 'user', populate: { path: 'faculty department' } })
       .exec();
-    const result = biodata.map((cur) => {
+    const results = biodata.map((cur) => {
       cur = cur.toObject();
       const total = cur.ca + cur.exam;
       let grade = 'F';
@@ -266,6 +271,7 @@ class ExamService {
       if (total >= 60 && total < 70) grade = 'B';
       if (total >= 50 && total < 60) grade = 'C';
       if (total >= 40 && total < 50) grade = 'D';
+      grade = exam.examType ? grade : undefined;
       return {
         ...cur.user,
         department: cur.user.department.department,
@@ -277,7 +283,16 @@ class ExamService {
         grade
       };
     });
-    return result;
+    const name = !xlxs
+      ? await htmlToPdf(
+          exam.examType
+            ? path.join(__dirname, './result-pdf-templates/school-result.ejs')
+            : path.join(__dirname, './result-pdf-templates/pume-result.ejs'),
+          results,
+          { examTitle: `${exam.title} - ${exam.course}` }
+        )
+      : await writeExcel(results, exam.examType);
+    return name;
   }
 
   /**

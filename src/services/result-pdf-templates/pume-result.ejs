@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <table border="1" style="border-collapse: collapse;">
+      <thead>
+        <tr>
+          <td>S/N</td>
+          <td>Name</td>
+          <td>Faculty</td>
+          <td>Department</td>
+          <td>Level</td>
+          <td>JAMB Ratio</td>
+          <td>PUME Ratio</td>
+          <td>Total Ratio</td>
+        </tr>
+      </thead>
+      <% if (results.length > 0) { %> <% results.forEach((student, i) => { %>
+      <tr>
+        <td><%= i+1 %></td>
+        <td><%= student.name %></td>
+        <td><%= student.faculty %></td>
+        <td><%= student.department %></td>
+        <td><%= student.level %></td>
+        <td><%= student.ca/400*100 %>%</td>
+        <td><%= student.exam/100*100 %>%</td>
+        <td><%= student.ca/400*100 + student.exam/100*100 %>%</td>
+      </tr>
+      <% }); %> <% } %>
+    </table>
+  </body>
+</html>

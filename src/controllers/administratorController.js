@@ -63,24 +63,32 @@ const __validateExamQuestions = (exam) =>
             faculty: cur.faculty
           };
           const { faculty } = cur;
-          const facultyCheck = await AdminService.getOneFaculty({
+          let facultyCheck = await AdminService.getOneFaculty({
             faculty
           });
+          let data = {};
           if (!facultyCheck) {
-            return {
-              ...acc,
-              errors: [...acc.errors, `"${faculty}" is not a faculty`]
+            facultyCheck = await AdminService.getOneDepartment({
+              department: faculty
+            });
+            if (!facultyCheck) {
+              return {
+                ...acc,
+                errors: [
+                  ...acc.errors,
+                  `"${faculty}" is neither a registered faculty nor department`
+                ]
+              };
+            }
+            data = { department: facultyCheck._id };
+          } else {
+            data = {
+              faculty: facultyCheck._id
             };
           }
           return {
             ...acc,
-            questionFor: [
-              ...acc.questionFor,
-              {
-                ...cur,
-                faculty: facultyCheck._id
-              }
-            ]
+            questionFor: [...acc.questionFor, { ...data }]
           };
         },
         { questionFor: [], errors: [] }
@@ -1119,7 +1127,9 @@ class AdminController {
     return async (req, res, next) => {
       try {
         const { exam } = req.params;
-        const result = await ExamService.getAllResults(exam);
+        const { xlsx } = req.query;
+
+        const result = await ExamService.getAllResults(exam, xlsx);
         if (!result) {
           return Response.notFoundError(res, 'no exam with that ID');
         }

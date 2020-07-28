@@ -1,3 +1,4 @@
+/* eslint-disable implicit-arrow-linebreak */
 /* eslint-disable operator-linebreak */
 /* eslint-disable no-underscore-dangle */
 import _ from 'lodash';
@@ -31,7 +32,7 @@ const examObject = (obj) => {
 export const saveExam = async (biodata) => {
   biodata = await BioData.findById(biodata._id)
     .populate({
-      path: 'answered.questionId'
+      path: 'answered.questionId examId'
     })
     .exec();
   const { answered } = biodata;
@@ -47,7 +48,7 @@ export const saveExam = async (biodata) => {
       marks += question.marks;
     }
   });
-  biodata.exam = marks > 70 ? 70 : marks;
+  biodata.exam = marks > 70 && biodata.examId.examType ? 70 : marks;
   await biodata.save();
 };
 
@@ -238,20 +239,32 @@ class UserService {
       examType = true,
       marksCount = 0
     ) => {
-      if (res.length === count || main.length <= 0 || marksCount >= 70) {
+      if (
+        res.length === count ||
+        main.length <= 0 ||
+        (marksCount >= 70 && examType)
+      ) {
         return res;
       }
       const index = Math.floor(Math.random() * main.length);
       const question = main.splice(index, 1)[0];
       if (!examType && question.questionFor.length > 0) {
-        const check = question.questionFor.find(
-          (elem) => elem.faculty.toString() === user.faculty._id.toString()
-        );
+        const check =
+          question.questionFor.find(
+            (elem) =>
+              (elem.faculty && elem.faculty.toString()) ===
+              user.faculty._id.toString()
+          ) ||
+          question.questionFor.find(
+            (elem) =>
+              (elem.department && elem.department.toString()) ===
+              user.department._id.toString()
+          );
         if (!check) {
           return fetchRandomQuestions(main, res, count, examType, marksCount);
         }
       }
-      if (marksCount + question.marks > 70) {
+      if (marksCount + question.marks > 70 && examType) {
         return fetchRandomQuestions(main, res, count, examType, marksCount);
       }
       marksCount += question.marks;
