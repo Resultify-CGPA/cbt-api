@@ -25,7 +25,6 @@ const BiodataSchema = new Schema(
           type: Schema.Types.ObjectId,
           ref: 'question',
           required: true,
-          unique: true
         },
         answer: {
           type: String,
