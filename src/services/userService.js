@@ -48,6 +48,13 @@ export const saveExam = async (biodata) => {
       marks += question.marks;
     }
   });
+  if (biodata.examId.examType && marks > 70) {
+    biodata.exam = 70;
+  } else if (!biodata.examId.examType && marks > 50) {
+    biodata.exam = 50;
+  } else {
+    biodata.exam = marks;
+  }
   biodata.exam = marks > 70 && biodata.examId.examType ? 70 : marks;
   await biodata.save();
 };
@@ -242,7 +249,8 @@ class UserService {
       if (
         res.length === count ||
         main.length <= 0 ||
-        (marksCount >= 70 && examType)
+        (marksCount >= 70 && examType) ||
+        (marksCount >= 50 && !examType)
       ) {
         return res;
       }
@@ -264,7 +272,10 @@ class UserService {
           return fetchRandomQuestions(main, res, count, examType, marksCount);
         }
       }
-      if (marksCount + question.marks > 70 && examType) {
+      if (
+        (marksCount + question.marks > 70 && examType) ||
+        (marksCount + question.marks > 50 && !examType)
+      ) {
         return fetchRandomQuestions(main, res, count, examType, marksCount);
       }
       marksCount += question.marks;

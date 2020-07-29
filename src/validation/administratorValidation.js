@@ -116,7 +116,7 @@ class AdminValidation {
             name: Joi.string(),
             department: Joi.string(),
             level: Joi.number().required(),
-            ca: Joi.number().default(0)
+            ca: Joi.number().default(0).max(50)
           })
         ),
         title: Joi.string().required(),
@@ -207,7 +207,7 @@ class AdminValidation {
         name: Joi.string(),
         department: Joi.string(),
         level: Joi.number().required(),
-        ca: Joi.number().default(0)
+        ca: Joi.number().default(0).max(50)
       });
       return validator(schema, req.body, res, next);
     };
@@ -220,7 +220,7 @@ class AdminValidation {
   static validateBiodataUpdateData() {
     return async (req, res, next) => {
       const schema = Joi.object().keys({
-        ca: Joi.number().max(30),
+        ca: Joi.number().max(50),
         exam: Joi.number().max(70),
         status: Joi.number().max(2).min(0)
       });

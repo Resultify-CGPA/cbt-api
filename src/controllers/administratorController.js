@@ -10,11 +10,29 @@ import ExamService from '../services/examService';
 import PinsService from '../services/pinsService';
 import Departments from '../models/Departments';
 
-const __validateBioData = (bioData) =>
+const __validateBioData = (bioData, examType) =>
   bioData.reduce(
     async (acc, cur) => {
       acc = await acc;
       let user = await UserService.getOneUser({ matric: cur.matric });
+      if (examType && cur.ca > 30) {
+        return {
+          ...acc,
+          errors: [
+            ...acc.errors,
+            `${cur.matric}'s ca is greater than the max of 30`
+          ]
+        };
+      }
+      if (!examType && cur.ca > 50) {
+        return {
+          ...acc,
+          errors: [
+            ...acc.errors,
+            `${cur.matric}'s ca is greater than the max of 30`
+          ]
+        };
+      }
       if (!user) {
         const department = await Departments.findOne({
           department: cur.department
@@ -585,7 +603,7 @@ class AdminController {
             check.errors
           );
         }
-        check = await __validateBioData(bioData);
+        check = await __validateBioData(bioData, exam.examType);
         if (check.errors.length > 0) {
           return Response.customResponse(
             res,
@@ -732,7 +750,7 @@ class AdminController {
           return Response.notFoundError(res, 'no exam exits with that ID');
         }
 
-        const check = await __validateBioData([req.body]);
+        const check = await __validateBioData([req.body], false);
         if (check.errors.length > 0) {
           return Response.badRequestError(res, check.errors[0]);
         }

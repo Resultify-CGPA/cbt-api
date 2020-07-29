@@ -82,23 +82,17 @@ export const writeExcel = (results, examType) =>
         if (typeof elem.ca === 'string') {
           worksheet.cell(row, 6).string(elem.ca);
         } else {
-          worksheet
-            .cell(row, 6)
-            .number(examType ? elem.ca : (elem.ca / 400) * 100);
+          worksheet.cell(row, 6).number(elem.ca);
         }
         if (typeof elem.exam === 'string') {
           worksheet.cell(row, 7).string(elem.exam);
         } else {
-          worksheet
-            .cell(row, 7)
-            .string(examType ? elem.exam : (elem.exam / 100) * 100);
+          worksheet.cell(row, 7).string(elem.exam);
         }
         if (elem.grade) {
           worksheet.cell(row, 8).string(elem.grade);
         } else {
-          worksheet
-            .cell(row, 8)
-            .string((elem.ca / 400) * 100 + (elem.exam / 100) * 100);
+          worksheet.cell(row, 8).string(elem.ca + elem.exam);
         }
       });
       workbook.write(path.join(__dirname, '../routes/static/', name));

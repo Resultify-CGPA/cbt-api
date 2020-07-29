@@ -35,14 +35,16 @@ const BiodataSchema = new Schema(
     ],
     ca: {
       type: Number,
-      default: 0
+      default: 0,
+      max: 50
     },
     timeStart: {
       type: Date
     },
     exam: {
       type: Number,
-      default: 0
+      default: 0,
+      max: 70
     },
     status: {
       type: Number,

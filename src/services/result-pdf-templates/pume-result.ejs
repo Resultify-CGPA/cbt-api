@@ -6,6 +6,7 @@
     <title>Document</title>
   </head>
   <body>
+    <h1><%= metaData.examTitle %></h1>
     <table border="1" style="border-collapse: collapse;">
       <thead>
         <tr>
@@ -26,9 +27,9 @@
         <td><%= student.faculty %></td>
         <td><%= student.department %></td>
         <td><%= student.level %></td>
-        <td><%= student.ca/400*100 %>%</td>
-        <td><%= student.exam/100*100 %>%</td>
-        <td><%= student.ca/400*100 + student.exam/100*100 %>%</td>
+        <td><%= student.ca %></td>
+        <td><%= student.exam %></td>
+        <td><%= student.ca + student.exam %></td>
       </tr>
       <% }); %> <% } %>
     </table>
