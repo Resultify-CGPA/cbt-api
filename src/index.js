@@ -6,9 +6,9 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import routes from './routes';
-import cleanDb from './seeds/cleanDB';
 import ExamService from './services/examService';
 import PinsService from './services/pinsService';
+import Admin from './models/AdministratorModel';
 
 dotenv.config();
 
@@ -33,7 +33,17 @@ mongoose
     useFindAndModify: false,
     useCreateIndex: true
   })
-  .then(() => {
+  .then(async () => {
+    const check = await Admin.findOne({ isRootAdmin: true });
+    if (!check) {
+      await Admin.create({
+        name: 'Root Administrator',
+        username: 'root',
+        password: 'password',
+        email: 'root@mail.com',
+        isRootAdmin: true
+      });
+    }
     ExamService.ExamSubmitFunction();
     PinsService.pinsDeletionFunction();
     console.log('Connection to DB successful!');
@@ -42,35 +52,6 @@ mongoose
     console.log('Unable to connect to DB');
     console.log(err);
   });
-
-cleanDb(false);
-app.use((req, res, next) => {
-  if (process.env.NODE_ENV !== 'development') return next();
-  const { send } = res;
-  // eslint-disable-next-line object-curly-newline
-  const { method, originalUrl, params, body, query } = req;
-  console.log(
-    method,
-    originalUrl,
-    '\nparams',
-    params,
-    '\nquery',
-    query,
-    '\nbody',
-    body
-  );
-  res.send = (data) => {
-    console.log(JSON.parse(data));
-    send.bind(res)(data);
-    return res;
-  };
-  res.status = (stat) => {
-    console.log(method, originalUrl, stat);
-    res.statusCode = stat;
-    return res;
-  };
-  next();
-});
 app.use(routes);
 // eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
