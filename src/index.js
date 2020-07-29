@@ -44,33 +44,33 @@ mongoose
   });
 
 cleanDb(false);
-app.use((req, res, next) => {
-  if (process.env.NODE_ENV !== 'development') return next();
-  const { send } = res;
-  // eslint-disable-next-line object-curly-newline
-  const { method, originalUrl, params, body, query } = req;
-  console.log(
-    method,
-    originalUrl,
-    '\nparams',
-    params,
-    '\nquery',
-    query,
-    '\nbody',
-    body
-  );
-  res.send = (data) => {
-    console.log(JSON.parse(data));
-    send.bind(res)(data);
-    return res;
-  };
-  res.status = (stat) => {
-    console.log(method, originalUrl, stat);
-    res.statusCode = stat;
-    return res;
-  };
-  next();
-});
+// app.use((req, res, next) => {
+//   if (process.env.NODE_ENV !== 'development') return next();
+//   const { send } = res;
+//   // eslint-disable-next-line object-curly-newline
+//   const { method, originalUrl, params, body, query } = req;
+//   console.log(
+//     method,
+//     originalUrl,
+//     '\nparams',
+//     params,
+//     '\nquery',
+//     query,
+//     '\nbody',
+//     body
+//   );
+//   res.send = (data) => {
+//     console.log(JSON.parse(data));
+//     send.bind(res)(data);
+//     return res;
+//   };
+//   res.status = (stat) => {
+//     console.log(method, originalUrl, stat);
+//     res.statusCode = stat;
+//     return res;
+//   };
+//   next();
+// });
 app.use(routes);
 // eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
