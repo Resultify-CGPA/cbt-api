@@ -78,7 +78,11 @@ export const writeExcel = (results, examType) =>
         worksheet.cell(row, 2).string(elem.name);
         worksheet.cell(row, 3).string(elem.faculty);
         worksheet.cell(row, 4).string(elem.department);
-        worksheet.cell(row, 5).number(elem.level);
+        if (typeof elem.level === 'string') {
+          worksheet.cell(row, 5).string(elem.level);
+        } else {
+          worksheet.cell(row, 5).number(elem.level);
+        }
         if (typeof elem.ca === 'string') {
           worksheet.cell(row, 6).string(elem.ca);
         } else {

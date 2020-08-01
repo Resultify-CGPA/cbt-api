@@ -713,8 +713,8 @@ class AdminController {
         limit = parseInt(limit, 10);
         let status;
         if (search === 'pending') status = 0;
-        else if (search === 'running') status = 1;
-        else if (search === 'closed') status = 2;
+        else if (search === 'online') status = 1;
+        else if (search === 'finished') status = 2;
         const $regex = new RegExp(`.*${search}.*`, 'i');
         const param =
           (search && {

@@ -4,34 +4,89 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      div.image {
+        display: flex;
+        justify-content: center;
+      }
+      h1 {
+        text-align: center;
+        font-size: 1.5rem;
+        line-height: 45px;
+        margin-top: 0;
+        margin-bottom: 50px;
+      }
+      img {
+        margin-right: 10px;
+        width: 70px;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
+      table {
+        margin: auto;
+      }
+
+      div.table h2 {
+        text-align: left;
+      }
+
+      th,
+      td {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      div.hrule {
+        border: 0.5px solid #000;
+        width: 170px;
+      }
+    </style>
   </head>
   <body>
     <h1><%= metaData.examTitle %></h1>
     <table border="1" style="border-collapse: collapse;">
       <thead>
         <tr>
-          <td>S/N</td>
-          <td>Name</td>
-          <td>Faculty</td>
-          <td>Department</td>
-          <td>Level</td>
-          <td>JAMB Ratio</td>
-          <td>PUME Ratio</td>
-          <td>Total Ratio</td>
+          <th>S/N</th>
+          <th>Name</th>
+          <th>Jamb Reg.No</th>
+          <th>Faculty</th>
+          <th>Department</th>
+          <th>JAMB Ratio</th>
+          <th>PUME Ratio</th>
+          <th>Total Ratio</th>
         </tr>
       </thead>
       <% if (results.length > 0) { %> <% results.forEach((student, i) => { %>
       <tr>
         <td><%= i+1 %></td>
         <td><%= student.name %></td>
+        <td><%= student.matric %></td>
         <td><%= student.faculty %></td>
         <td><%= student.department %></td>
-        <td><%= student.level %></td>
         <td><%= student.ca %></td>
         <td><%= student.exam %></td>
         <td><%= student.ca + student.exam %></td>
       </tr>
       <% }); %> <% } %>
     </table>
+    <div
+      style="display: flex; justify-content: space-between; margin-top: 80px;"
+    >
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="hrule"></div>
+        <h4>e-Examination Chairman</h4>
+      </div>
+
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="hrule"></div>
+        <h4>e-Examination Chairman</h4>
+      </div>
+    </div>
   </body>
 </html>

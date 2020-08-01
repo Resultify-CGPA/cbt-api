@@ -309,6 +309,7 @@ class ExamService {
         .populate({ path: 'examId' })
         .exec();
       biodata.forEach(async (doc) => {
+        if (!doc.timeStart) return;
         const { timeStart } = doc;
         const { timeAllowed } = doc.examId;
         if (
