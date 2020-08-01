@@ -86,6 +86,19 @@ class ExamService {
   }
 
   /**
+   * deletes one exam
+   * @param {object} param query param
+   * @returns {boolean | null } null if successfull false if exam is not found
+   */
+  static async deleteOneExam(param) {
+    const exam = await ExamsModel.findOne(param);
+    if (!exam) {
+      return false;
+    }
+    return exam.remove();
+  }
+
+  /**
    * returns the questions of an exam
    * @returns {array} array of questions
    */

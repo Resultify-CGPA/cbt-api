@@ -123,7 +123,8 @@ router
   .put(
     AdminValidation.validateExamUpdateData(),
     AdminController.updateOneExam()
-  );
+  )
+  .delete(AdminController.deleteExam());
 router
   .route('/')
   .get(AdminController.getAllAdmins())

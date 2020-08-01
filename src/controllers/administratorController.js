@@ -670,6 +670,34 @@ class AdminController {
   }
 
   /**
+   * deletes an exam
+   * @returns {function} middleware function
+   */
+  static deleteExam() {
+    return async (req, res, next) => {
+      try {
+        const { exam: _id } = req.params;
+        const check = await ExamService.getOneExam({ _id, status: 1 });
+        if (check) {
+          return Response.badRequestError(res, 'cannot delete a running exam');
+        }
+        const removed = await ExamService.deleteOneExam({ _id });
+        if (removed === false) {
+          return Response.notFoundError(res, 'no exam with that Id');
+        }
+        return Response.customResponse(
+          res,
+          200,
+          'exam deleted successfully',
+          null
+        );
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
+
+  /**
    * generates pins
    * @returns {function} middlewar function
    */
