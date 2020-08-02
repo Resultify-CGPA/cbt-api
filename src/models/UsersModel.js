@@ -18,12 +18,12 @@ const UsersSchema = new Schema(
     department: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: 'department'
+      ref: 'pre-cbt-app-department'
     },
     faculty: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: 'faculty'
+      ref: 'pre-cbt-app-faculty'
     },
     level: {
       type: Number,
@@ -53,4 +53,4 @@ UsersSchema.methods = {
   }
 };
 
-module.exports = model('users', UsersSchema);
+module.exports = model('pre-cbt-app-users', UsersSchema);

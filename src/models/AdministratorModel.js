@@ -83,4 +83,4 @@ AdminSchema.methods = {
   }
 };
 
-export default model('administrator', AdminSchema);
+export default model('pre-cbt-app-administrator', AdminSchema);

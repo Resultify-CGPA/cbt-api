@@ -4,17 +4,17 @@ const BiodataSchema = new Schema(
   {
     examId: {
       type: Schema.Types.ObjectId,
-      ref: 'exams'
+      ref: 'pre-cbt-app-exams'
     },
     user: {
       type: Schema.Types.ObjectId,
-      ref: 'users'
+      ref: 'pre-cbt-app-users'
     },
     questions: [
       {
         questionId: {
           type: Schema.Types.ObjectId,
-          ref: 'question',
+          ref: 'pre-cbt-app-question',
           required: true
         }
       }
@@ -23,8 +23,8 @@ const BiodataSchema = new Schema(
       {
         questionId: {
           type: Schema.Types.ObjectId,
-          ref: 'question',
-          required: true,
+          ref: 'pre-cbt-app-question',
+          required: true
         },
         answer: {
           type: String,
@@ -53,4 +53,4 @@ const BiodataSchema = new Schema(
   { timestamps: true }
 );
 
-export default model('biodata', BiodataSchema);
+export default model('pre-cbt-app-biodata', BiodataSchema);

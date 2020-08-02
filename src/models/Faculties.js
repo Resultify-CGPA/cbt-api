@@ -15,4 +15,4 @@ const FacultySchema = new Schema(
   { timestamps: true }
 );
 
-export default model('faculty', FacultySchema);
+export default model('pre-cbt-app-faculty', FacultySchema);

@@ -14,4 +14,4 @@ const PinsSchema = new Schema(
   { timestamps: true }
 );
 
-export default model('pin', PinsSchema);
+export default model('pre-cbt-app-pin', PinsSchema);

@@ -4,18 +4,18 @@ const QuestionSchema = new Schema(
   {
     examId: {
       type: Schema.Types.ObjectId,
-      ref: 'exams'
+      ref: 'pre-cbt-app-exams'
     },
     images: [{ type: String }],
     questionFor: [
       {
         faculty: {
           type: Schema.Types.ObjectId,
-          ref: 'faculty'
+          ref: 'pre-cbt-app-faculty'
         },
         department: {
           type: Schema.Types.ObjectId,
-          ref: 'department'
+          ref: 'pre-cbt-app-department'
         }
       }
     ],
@@ -58,4 +58,4 @@ const QuestionSchema = new Schema(
   { timestamps: true }
 );
 
-export default model('question', QuestionSchema);
+export default model('pre-cbt-app-question', QuestionSchema);

@@ -12,10 +12,10 @@ const DepartmentSchema = new Schema(
     },
     faculty: {
       type: Schema.Types.ObjectId,
-      ref: 'faculty'
+      ref: 'pre-cbt-app-faculty'
     }
   },
   { timestamps: true }
 );
 
-export default model('department', DepartmentSchema);
+export default model('pre-cbt-app-department', DepartmentSchema);

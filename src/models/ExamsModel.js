@@ -44,4 +44,4 @@ const ExamsModel = new Schema(
   }
 );
 
-export default model('exams', ExamsModel);
+export default model('pre-cbt-app-exams', ExamsModel);
