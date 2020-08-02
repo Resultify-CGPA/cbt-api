@@ -678,7 +678,7 @@ class AdminController {
       try {
         const { exam: _id } = req.params;
         const check = await ExamService.getOneExam({ _id, status: 1 });
-        if (check) {
+        if (check.exam) {
           return Response.badRequestError(res, 'cannot delete a running exam');
         }
         const removed = await ExamService.deleteOneExam({ _id });
