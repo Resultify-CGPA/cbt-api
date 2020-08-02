@@ -152,8 +152,8 @@ class AdminController {
   static getFreshUser() {
     return async (req, res, next) => {
       try {
-        const { password, _id } = req.user.data;
-        const user = await AdminService.getOneUser({ password, _id });
+        const { _id } = req.user.data;
+        const user = await AdminService.getOneUser({ _id });
         if (!user) {
           return Response.authorizationError(res, 'unauthorized');
         }
