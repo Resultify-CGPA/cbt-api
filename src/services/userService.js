@@ -219,7 +219,7 @@ class UserService {
     if (!user) {
       return null;
     }
-    if (!user.status !== 1) {
+    if (user.status !== 1) {
       return 0;
     }
     timeIncrease *= user.examId.timeAllowed / user.examId.displayTime;
@@ -362,17 +362,21 @@ class UserService {
     const { timeAllowed, displayTime, title, course } = biodata.examId;
     // eslint-disable-next-line prefer-const
     let { questions, timeStart } = biodata;
-    const answered = biodata.toObject().answered.reduce((acc, cur) => {
-      delete cur._id;
-      delete cur.__v;
-      return { ...acc, [cur.questionId]: cur };
-    }, {});
-    biodata.answered = Object.values({
-      ...answered,
-      ...Object.values(answers).reduce(
-        (acc, cur) => ({ ...acc, [cur.questionId]: cur }),
-        {}
-      )
+    Object.values(answers).forEach((answer) => {
+      let ind;
+      biodata.answered.find((elem, i) => {
+        const comparison =
+          elem.questionId._id.toString() === answer.questionId.toString();
+        if (comparison) {
+          ind = i;
+        }
+        return comparison;
+      });
+      if (ind !== undefined) {
+        biodata.answered[ind].answer = answer.answer;
+        return;
+      }
+      biodata.answered.push(answer);
     });
     biodata = await biodata.save();
     if (timeStart + timeAllowed * 60000 < Date.now()) {
