@@ -1173,9 +1173,9 @@ class AdminController {
     return async (req, res, next) => {
       try {
         const { exam } = req.params;
-        const { xlsx } = req.query;
+        const { xlsx, refresh = false } = req.query;
 
-        const result = await ExamService.getAllResults(exam, xlsx);
+        const result = await ExamService.getAllResults(exam, xlsx, refresh);
         if (!result) {
           return Response.notFoundError(res, 'no exam with that ID');
         }

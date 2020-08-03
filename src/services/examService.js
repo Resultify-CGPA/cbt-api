@@ -268,15 +268,16 @@ class ExamService {
    * gets all results for an exam
    * @param {string} examId exam's id to get result for
    * @param {boolean} xlxs whether to return pdf or xlxs
+   * @param {boolean} refresh whether to refresh the blob or send existing
    * @returns {object} array of results
    */
-  static async getAllResults(examId, xlxs) {
+  static async getAllResults(examId, xlxs, refresh) {
     const exam = await ExamsModel.findOne({ _id: examId });
     if (!exam) return exam;
     const biodata = await BioData.find({ examId })
       .populate({ path: 'user', populate: { path: 'faculty department' } })
       .exec();
-    const results = biodata.map((cur) => {
+    const results = biodata.reduce((acc, cur) => {
       cur = cur.toObject();
       const total = cur.ca + cur.exam;
       let grade = 'F';
@@ -285,26 +286,37 @@ class ExamService {
       if (total >= 50 && total < 60) grade = 'C';
       if (total >= 40 && total < 50) grade = 'D';
       grade = exam.examType ? grade : undefined;
-      return {
-        ...cur.user,
-        department: cur.user.department.department,
-        faculty: cur.user.faculty.faculty,
-        ca: cur.ca,
-        exam: cur.exam,
-        status: cur.status,
-        total,
-        grade
-      };
-    });
+      return _.merge({}, acc, {
+        [cur.user.faculty.faculty]: {
+          faculty: cur.user.faculty.faculty,
+          results: [
+            {
+              ...cur.user,
+              department: cur.user.department.department,
+              ca: cur.ca,
+              exam: cur.exam,
+              grade
+            }
+          ]
+        }
+      });
+    }, {});
     const name = !xlxs
       ? await htmlToPdf(
           exam.examType
             ? path.join(__dirname, './result-pdf-templates/school-result.ejs')
             : path.join(__dirname, './result-pdf-templates/pume-result.ejs'),
           results,
-          { examTitle: `${exam.title} - ${exam.course}` }
+          { examTitle: `${exam.title} - ${exam.course}` },
+          `${exam.title}-${exam.course}-${exam._id}.pdf`,
+          refresh
         )
-      : await writeExcel(results, exam.examType);
+      : await writeExcel(
+          results,
+          exam.examType,
+          `${exam.title}-${exam.course}-${exam._id}.xlsx`,
+          refresh
+        );
     return name;
   }
 

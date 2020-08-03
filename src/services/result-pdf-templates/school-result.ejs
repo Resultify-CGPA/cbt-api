@@ -4,14 +4,59 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <style>
+      table {
+        margin: auto;
+      }
+
+      div.table h2 {
+        text-align: left;
+      }
+
+      th,
+      td {
+        font-size: 14px;
+        padding: 10px;
+        text-transform: capitalize;
+      }
+
+      div.hrule {
+        border: 0.5px solid #000;
+        width: 170px;
+      }
+    </style>
   </head>
-  <body>
-    <h1><%= metaData.examTitle %></h1>
+  <body style="font-family: Arial, Helvetica, sans-serif;">
+    <% Object.values(datas).forEach(data => { %>
+    <div style="display: flex; justify-content: center;">
+      <img
+        style="margin-right: 10px; width: 70px;"
+        src="<%= logo %>"
+        alt="Logo"
+      />
+    </div>
+    <h1
+      style="
+        text-align: center;
+        font-size: 1.5rem;
+        line-height: 45px;
+        margin-top: 0;
+        margin-bottom: 50px;
+        text-transform: capitalize;
+      "
+    >
+      <%= metaData.examTitle %>
+    </h1>
+
+    <h2 style="font-size: 1.2rem; text-transform: capitalize;">
+      <%= data.faculty %>
+    </h2>
     <table border="1" style="border-collapse: collapse;">
       <thead>
         <tr>
           <td>S/N</td>
           <td>Name</td>
+          <td>Matric</td>
           <td>Faculty</td>
           <td>Department</td>
           <td>Level</td>
@@ -20,11 +65,13 @@
           <td>Grade</td>
         </tr>
       </thead>
-      <% if (results.length > 0) { %> <% results.forEach((student, i) => { %>
+      <% if (data.results.length > 0) { %> <% data.results.forEach(function
+      iterator(student, i) { %>
       <tr>
         <td><%= i+1 %></td>
         <td><%= student.name %></td>
-        <td><%= student.faculty %></td>
+        <td style="text-transform: uppercase;"><%= student.matric %></td>
+        <td><%= data.faculty %></td>
         <td><%= student.department %></td>
         <td><%= student.level %></td>
         <td><%= student.ca %></td>
@@ -33,5 +80,19 @@
       </tr>
       <% }); %> <% } %>
     </table>
+    <div
+      style="display: flex; justify-content: space-between; margin-top: 80px;"
+    >
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="hrule"></div>
+        <h4>e-Examination Chairman</h4>
+      </div>
+
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="hrule"></div>
+        <h4>e-Examination Chairman</h4>
+      </div>
+    </div>
+    <% }); %>
   </body>
 </html>
