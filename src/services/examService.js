@@ -286,7 +286,26 @@ class ExamService {
       if (total >= 50 && total < 60) grade = 'C';
       if (total >= 40 && total < 50) grade = 'D';
       grade = exam.examType ? grade : undefined;
-      return _.merge({}, acc, {
+      if (acc[cur.user.faculty.faculty]) {
+        return {
+          ...acc,
+          [cur.user.faculty.faculty]: {
+            ...acc[cur.user.faculty.faculty],
+            results: [
+              ...acc[cur.user.faculty.faculty].results,
+              {
+                ...cur.user,
+                department: cur.user.department.department,
+                ca: cur.ca,
+                exam: cur.exam,
+                grade
+              }
+            ]
+          }
+        };
+      }
+      return {
+        ...acc,
         [cur.user.faculty.faculty]: {
           faculty: cur.user.faculty.faculty,
           results: [
@@ -299,7 +318,7 @@ class ExamService {
             }
           ]
         }
-      });
+      };
     }, {});
     const name = !xlxs
       ? await htmlToPdf(
