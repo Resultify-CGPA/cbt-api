@@ -5,34 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
-      body {
-        font-family: Arial, Helvetica, sans-serif;
-      }
-      div.image {
-        display: flex;
-        justify-content: center;
-      }
-      h1 {
-        text-align: center;
-        font-size: 1.5rem;
-        line-height: 45px;
-        margin-top: 0;
-        margin-bottom: 50px;
-        text-transform: capitalize;
-      }
-      img {
-        margin-right: 10px;
-        width: 70px;
-      }
-
-      h2 {
-        font-size: 1.2rem;
-        text-transform: capitalize;
-      }
-      table {
-        margin: auto;
-      }
-
       div.table h2 {
         text-align: left;
       }
@@ -50,55 +22,74 @@
       }
     </style>
   </head>
-  <body>
-    <% Object.values(datas).forEach(data => { %>
-    <div class="image">
-      <img src="<%= logo %>" alt="Logo" />
+  <body style="font-family: Arial, Helvetica, sans-serif;">
+    <div style="display: flex; justify-content: center;">
+      <img
+        style="margin-top: 50px; margin-right: 10px; width: 70px;"
+        src="<%= logo %>"
+        alt="Logo"
+      />
     </div>
-    <h1>
-      <%= metaData.examTitle %>
+    <h1
+      style="
+        text-align: center;
+        font-size: 1.5rem;
+        line-height: 45px;
+        margin-top: 0;
+        margin-bottom: 50px;
+      "
+    >
+      Prince Abubakar Audu University, Anyigba <br />
+      e-Examination <br />
+      <span style="text-transform: capitalize;"><%= metaData.examTitle %></span>
     </h1>
 
-    <h2><%= data.faculty %></h2>
-    <table border="1" style="border-collapse: collapse;">
-      <thead>
-        <tr>
-          <th>S/N</th>
-          <th>Name</th>
-          <th>Jamb Reg.No</th>
-          <th>Faculty</th>
-          <th>Department</th>
-          <th>JAMB Ratio</th>
-          <th>PUME Ratio</th>
-          <th>Total Ratio</th>
-        </tr>
-      </thead>
-      <% if (data.results.length > 0) { %> <% data.results.forEach(function
-      iterator(student, i) { %>
-      <tr>
-        <td><%= i+1 %></td>
-        <td><%= student.name %></td>
-        <td style="text-transform: uppercase;"><%= student.matric %></td>
-        <td><%= data.faculty %></td>
-        <td><%= student.department %></td>
-        <td><%= student.ca %></td>
-        <td><%= student.exam %></td>
-        <td><%= student.ca + student.exam %></td>
-      </tr>
-      <% }); %> <% } %>
-    </table>
-    <div
-      style="display: flex; justify-content: space-between; margin-top: 80px;"
-    >
-      <div style="display: flex; flex-direction: column; align-items: center;">
-        <div class="hrule"></div>
-        <h4>e-Examination Chairman</h4>
-      </div>
+    <% Object.values(datas).forEach(data => { %>
 
-      <div style="display: flex; flex-direction: column; align-items: center;">
-        <div class="hrule"></div>
-        <h4>e-Examination Chairman</h4>
+    <div style="margin: 0 1.5rem;">
+      <h2
+        style="font-size: 1.2rem; text-transform: capitalize; margin-top: 3rem;"
+      >
+        <%= data.faculty %>
+      </h2>
+      <table border="1" style="border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th>S/N</th>
+            <th>Name</th>
+            <th>Jamb Reg.No</th>
+            <th>Faculty</th>
+            <th>Department</th>
+            <th>JAMB Ratio</th>
+            <th>PUME Ratio</th>
+            <th>Total Ratio</th>
+          </tr>
+        </thead>
+        <% if (data.results.length > 0) { %> <% data.results.forEach(function
+        iterator(student, i) { %>
+        <tr>
+          <td><%= i+1 %></td>
+          <td><%= student.name %></td>
+          <td style="text-transform: uppercase;"><%= student.matric %></td>
+          <td><%= data.faculty %></td>
+          <td><%= student.department %></td>
+          <td><%= student.ca %></td>
+          <td><%= student.exam %></td>
+          <td><%= student.ca + student.exam %></td>
+        </tr>
+        <% }); %> <% } %>
+      </table>
+      <div
+        style="display: flex; justify-content: space-between; margin-top: 80px;"
+      >
+        <div
+          style="display: flex; flex-direction: column; align-items: center;"
+        >
+          <div class="hrule"></div>
+          <h4>e-Examination Chairman</h4>
+        </div>
       </div>
+      <div style="break-after: page;"></div>
     </div>
     <% }); %>
   </body>
