@@ -101,6 +101,7 @@ router
     AdminValidation.validateBiodataCreationData(),
     AdminController.createBioData()
   );
+router.route('/exams/:exam/mass-score').put(AdminController.addMassScore());
 router
   .route('/exams/:exam/questions/:question')
   .get(AdminController.getOneQuestion())

@@ -1185,6 +1185,31 @@ class AdminController {
       }
     };
   }
+
+  /**
+   * adds students scores
+   * @returns {funciton} middleware function
+   */
+  static addMassScore() {
+    return async (req, res, next) => {
+      try {
+        let { score = 0 } = req.body;
+        score = parseFloat(score);
+        // eslint-disable-next-line no-restricted-globals
+        if (isNaN(score)) {
+          return res.status(422).json({
+            message: '"score" must be a number',
+            status: 422,
+            error: 'Valdation Error'
+          });
+        }
+        await ExamService.addMassScore(req.params.exam, score);
+        return Response.customResponse(res, 200, 'score added', {});
+      } catch (error) {
+        next(error);
+      }
+    };
+  }
 }
 
 export default AdminController;

@@ -345,6 +345,33 @@ class ExamService {
   }
 
   /**
+   * add mass score
+   * @param {string} examId the exam
+   * @param {number} scoreAddition score to add
+   * @returns {boolean} true if successful, and throws an error if not
+   */
+  static async addMassScore(examId, scoreAddition) {
+    const data = await BioData.find({ examId })
+      .populate({ path: 'examId' })
+      .exec();
+    await Promise.all(
+      data.map(async (biodata) => {
+        if (biodata.examId.examType && biodata.exam + scoreAddition > 70) {
+          biodata.exam = 70;
+          return biodata.save();
+        }
+        if (!biodata.examId.examType && biodata.exam + scoreAddition > 50) {
+          biodata.exam = 50;
+          return biodata.save();
+        }
+        biodata.exam += scoreAddition;
+        return biodata.save();
+      })
+    );
+    return true;
+  }
+
+  /**
    * Middleware that submits for students
    * whose time got finished before they
    * could submit.
