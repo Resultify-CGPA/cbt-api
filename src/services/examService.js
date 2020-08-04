@@ -1,6 +1,8 @@
+/* eslint-disable operator-linebreak */
 /* eslint-disable no-underscore-dangle */
 import _ from 'lodash';
 import path from 'path';
+import fs from 'fs';
 
 import ExamsModel from '../models/ExamsModel';
 import Users from '../models/UsersModel';
@@ -274,6 +276,15 @@ class ExamService {
   static async getAllResults(examId, xlxs, refresh) {
     const exam = await ExamsModel.findOne({ _id: examId });
     if (!exam) return exam;
+    const fileTitle = xlxs
+      ? `${exam.title}-${exam.course}-${exam._id}.xlsx`
+      : `${exam.title}-${exam.course}-${exam._id}.pdf`;
+    if (
+      fs.existsSync(path.join(__dirname, '../routes/static/', fileTitle)) &&
+      !refresh
+    ) {
+      return fileTitle;
+    }
     const biodata = await BioData.find({ examId })
       .populate({ path: 'user', populate: { path: 'faculty department' } })
       .exec();
@@ -327,16 +338,37 @@ class ExamService {
             : path.join(__dirname, './result-pdf-templates/pume-result.ejs'),
           results,
           { examTitle: `${exam.title} - ${exam.course}` },
-          `${exam.title}-${exam.course}-${exam._id}.pdf`,
-          refresh
+          fileTitle
         )
-      : await writeExcel(
-          results,
-          exam.examType,
-          `${exam.title}-${exam.course}-${exam._id}.xlsx`,
-          refresh
-        );
+      : await writeExcel(results, exam.examType, fileTitle);
     return name;
+  }
+
+  /**
+   * add mass score
+   * @param {string} examId the exam
+   * @param {number} scoreAddition score to add
+   * @returns {boolean} true if successful, and throws an error if not
+   */
+  static async addMassScore(examId, scoreAddition) {
+    const data = await BioData.find({ examId })
+      .populate({ path: 'examId' })
+      .exec();
+    await Promise.all(
+      data.map(async (biodata) => {
+        if (biodata.examId.examType && biodata.exam + scoreAddition > 70) {
+          biodata.exam = 70;
+          return biodata.save();
+        }
+        if (!biodata.examId.examType && biodata.exam + scoreAddition > 50) {
+          biodata.exam = 50;
+          return biodata.save();
+        }
+        biodata.exam += scoreAddition;
+        return biodata.save();
+      })
+    );
+    return true;
   }
 
   /**

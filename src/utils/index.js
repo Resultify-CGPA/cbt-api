@@ -27,15 +27,8 @@ export const htmlToPdf = async (
   pathToTemplate,
   datas,
   metaData = { examTitle: '' },
-  name = 'school-result.pdf',
-  reset = false
+  name = 'school-result.pdf'
 ) => {
-  if (
-    fs.existsSync(path.join(__dirname, '../routes/static/', name)) &&
-    !reset
-  ) {
-    return name;
-  }
   const data = await ejs.renderFile(pathToTemplate, {
     datas,
     metaData,
@@ -58,27 +51,20 @@ export const htmlToPdf = async (
   });
   await page.pdf({
     format: 'A4',
+    margin: {
+      top: '20px',
+      bottom: '5px'
+    },
     path: path.join(__dirname, '../routes/static/', name)
   });
   await browser.close();
   return name;
 };
 
-export const writeExcel = (
-  results,
-  examType,
-  name = 'school-result.xlsx',
-  reset = false
-) =>
+export const writeExcel = (results, examType, name = 'school-result.xlsx') =>
   // eslint-disable-next-line implicit-arrow-linebreak
   new Promise((resolve, reject) => {
     try {
-      if (
-        fs.existsSync(path.join(__dirname, '../routes/static/', name)) &&
-        !reset
-      ) {
-        return resolve(name);
-      }
       const workbook = new excel.Workbook();
 
       Object.values(results).forEach((result) => {

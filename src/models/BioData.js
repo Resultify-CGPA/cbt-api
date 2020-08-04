@@ -1,4 +1,5 @@
 import { model, Schema } from 'mongoose';
+import ExamsModel from './ExamsModel';
 
 const BiodataSchema = new Schema(
   {
