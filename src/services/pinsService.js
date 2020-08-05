@@ -58,7 +58,7 @@ class PinsService {
         if (!user) {
           return;
         }
-        const date = new Date(user.createdAt).getTime() + 2678400000;
+        const date = new Date(user.createdAt).getTime() + 60 * 60 * 24 * 26 * 1000;
         if (date < Date.now()) {
           ((pinSecurity) => {
             try {
