@@ -97,6 +97,8 @@ class ExamService {
     if (!exam) {
       return false;
     }
+    await BioData.deleteMany({ examId: exam._id });
+    await Questions.deleteMany({ examId: exam._id });
     return exam.remove();
   }
 
@@ -123,7 +125,11 @@ class ExamService {
     if (!exam) {
       return exam;
     }
-    const question = await Questions.create({ ...data, examId });
+    let question = await Questions.findOne({ examId, question: data.question });
+    if (question) {
+      return question;
+    }
+    question = await Questions.create({ ...data, examId });
 
     return question;
   }
@@ -219,9 +225,12 @@ class ExamService {
    * @returns {object} created biodata
    */
   static async createOneBiodata({ examId, data }) {
-    let biodata = await BioData.findOne({ examId, user: data.user });
+    let biodata = await ExamService.getOneSingleBiodata({
+      examId,
+      user: data.user
+    });
     if (biodata) {
-      throw new Error('entry already exists. duplicates not allowed!');
+      return biodata;
     }
     biodata = await BioData.create({ ...data, examId });
 

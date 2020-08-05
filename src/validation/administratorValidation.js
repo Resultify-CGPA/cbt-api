@@ -242,6 +242,7 @@ class AdminValidation {
         ),
         marks: Joi.number().required(),
         images: Joi.array().items(),
+        type: Joi.boolean(),
         correct: Joi.string().required(),
         question: Joi.string().required(),
         options: Joi.object()
