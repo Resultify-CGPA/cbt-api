@@ -63,6 +63,7 @@
             <td>Level</td>
             <td>CA</td>
             <td>Exam</td>
+            <td>Total</td>
             <td>Grade</td>
           </tr>
         </thead>
@@ -77,6 +78,7 @@
           <td><%= student.level %></td>
           <td><%= student.ca %></td>
           <td><%= student.exam %></td>
+          <td><%= student.exam + student.ca %></td>
           <td><%= student.grade %></td>
         </tr>
         <% }); %> <% } %>
