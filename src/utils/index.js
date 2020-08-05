@@ -67,57 +67,112 @@ export const writeExcel = (results, examType, name = 'school-result.xlsx') =>
     try {
       const workbook = new excel.Workbook();
 
-      Object.values(results).forEach((result) => {
-        const worksheet = workbook.addWorksheet(result.faculty.toUpperCase());
-        result.results = [
-          {
-            sn: 'S/N',
-            name: 'Name',
-            matric: examType ? 'Matric No.' : 'JAMB Reg.',
-            faculty: 'Faculty',
-            department: 'Department',
-            level: 'Level',
-            ca: examType ? 'CA' : 'JAMB Ratio',
-            exam: examType ? 'Exam' : 'PUME Ratio',
-            grade: examType ? 'Grade' : 'Total Ratio'
-          },
-          ...result.results
-        ];
-        result.results.forEach((elem, i) => {
-          const row = i + 1;
-          if (typeof elem.sn === 'string') {
-            worksheet.cell(row, 1).string(elem.sn);
-          } else {
-            worksheet.cell(row, 1).number(row - 1);
-          }
-          worksheet.cell(row, 2).string(elem.name.toUpperCase());
-          worksheet.cell(row, 3).string(elem.matric.toUpperCase());
-          worksheet
-            .cell(row, 4)
-            .string(i === 0 ? elem.faculty : result.faculty.toUpperCase());
-          worksheet.cell(row, 5).string(elem.department.toUpperCase());
-          if (typeof elem.level === 'string') {
-            worksheet.cell(row, 6).string(elem.level);
-          } else {
-            worksheet.cell(row, 6).number(elem.level);
-          }
-          if (typeof elem.ca === 'string') {
-            worksheet.cell(row, 7).string(elem.ca);
-          } else {
-            worksheet.cell(row, 7).number(elem.ca);
-          }
-          if (typeof elem.exam === 'string') {
-            worksheet.cell(row, 8).string(elem.exam);
-          } else {
-            worksheet.cell(row, 8).number(elem.exam);
-          }
-          if (elem.grade) {
-            worksheet.cell(row, 9).string(elem.grade);
-          } else {
-            worksheet.cell(row, 9).number(elem.ca + elem.exam);
-          }
+      if (examType) {
+        Object.values(results).forEach((result) => {
+          const worksheet = workbook.addWorksheet(result.faculty.toUpperCase());
+          result.results = [
+            {
+              sn: 'S/N',
+              name: 'Name',
+              matric: 'Matric No.',
+              faculty: 'Faculty',
+              department: 'Department',
+              level: 'Level',
+              ca: 'CA',
+              exam: 'Exam',
+              grade: 'Grade'
+            },
+            ...result.results
+          ];
+          result.results.forEach((elem, i) => {
+            const row = i + 1;
+            if (typeof elem.sn === 'string') {
+              worksheet.cell(row, 1).string(elem.sn);
+            } else {
+              worksheet.cell(row, 1).number(row - 1);
+            }
+            worksheet.cell(row, 2).string(elem.name.toUpperCase());
+            worksheet.cell(row, 3).string(elem.matric.toUpperCase());
+            worksheet
+              .cell(row, 4)
+              .string(i === 0 ? elem.faculty : result.faculty.toUpperCase());
+            worksheet.cell(row, 5).string(elem.department.toUpperCase());
+            if (typeof elem.level === 'string') {
+              worksheet.cell(row, 6).string(elem.level);
+            } else {
+              worksheet.cell(row, 6).number(elem.level);
+            }
+            if (typeof elem.ca === 'string') {
+              worksheet.cell(row, 7).string(elem.ca);
+            } else {
+              worksheet.cell(row, 7).number(elem.ca);
+            }
+            if (typeof elem.exam === 'string') {
+              worksheet.cell(row, 8).string(elem.exam);
+            } else {
+              worksheet.cell(row, 8).number(elem.exam);
+            }
+            if (i === 0) {
+              worksheet.cell(row, 9).string('Total');
+            } else {
+              worksheet.cell(row, 9).number(elem.exam + elem.ca);
+            }
+            worksheet.cell(row, 10).string(elem.grade);
+          });
         });
-      });
+      } else {
+        Object.values(results).forEach((result) => {
+          const worksheet = workbook.addWorksheet(result.faculty.toUpperCase());
+          result.results = [
+            {
+              sn: 'S/N',
+              name: 'Name',
+              matric: 'Jamb Reg.',
+              faculty: 'Faculty',
+              department: 'Department',
+              level: 'Level',
+              ca: 'Jamb Ratio',
+              exam: 'PUME Ratio',
+              grade: 'Total Ratio'
+            },
+            ...result.results
+          ];
+          result.results.forEach((elem, i) => {
+            const row = i + 1;
+            if (typeof elem.sn === 'string') {
+              worksheet.cell(row, 1).string(elem.sn);
+            } else {
+              worksheet.cell(row, 1).number(row - 1);
+            }
+            worksheet.cell(row, 2).string(elem.name.toUpperCase());
+            worksheet.cell(row, 3).string(elem.matric.toUpperCase());
+            worksheet
+              .cell(row, 4)
+              .string(i === 0 ? elem.faculty : result.faculty.toUpperCase());
+            worksheet.cell(row, 5).string(elem.department.toUpperCase());
+            if (typeof elem.level === 'string') {
+              worksheet.cell(row, 6).string(elem.level);
+            } else {
+              worksheet.cell(row, 6).number(elem.level);
+            }
+            if (typeof elem.ca === 'string') {
+              worksheet.cell(row, 7).string(elem.ca);
+            } else {
+              worksheet.cell(row, 7).number(elem.ca);
+            }
+            if (typeof elem.exam === 'string') {
+              worksheet.cell(row, 8).string(elem.exam);
+            } else {
+              worksheet.cell(row, 8).number(elem.exam);
+            }
+            if (elem.grade) {
+              worksheet.cell(row, 9).string(elem.grade);
+            } else {
+              worksheet.cell(row, 9).number(elem.ca + elem.exam);
+            }
+          });
+        });
+      }
       workbook.write(path.join(__dirname, '../routes/static/', name));
       resolve(name);
     } catch (error) {
