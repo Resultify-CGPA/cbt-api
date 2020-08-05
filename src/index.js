@@ -1,5 +1,6 @@
 import '@babel/polyfill';
 import express from 'express';
+import path from 'path';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -52,7 +53,15 @@ mongoose
     console.log('Unable to connect to DB');
     console.log(err);
   });
+app.get('*', express.static(path.resolve(__dirname, 'build')));
 app.use(routes);
+app.use(
+  '*',
+  (req, res) =>
+    // eslint-disable-next-line implicit-arrow-linebreak
+    res.sendFile(path.join(__dirname, 'build/index.html'))
+  // eslint-disable-next-line function-paren-newline
+);
 // eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
   const status = error.status || error.statusCode || 500;

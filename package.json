@@ -9,8 +9,8 @@
     "yarn": ">=1.15.2 || 1.22.x"
   },
   "scripts": {
-    "build": "rm -rf ./src/build && babel ./src/. --out-dir ./src/build --copy-files",
-    "start": "node ./src/build/index.js",
+    "build": "babel ./src/. --out-dir ./src/prod --copy-files",
+    "start": "node ./src/prod/index.js",
     "start:dev": "nodemon --exec babel-node src/index.js"
   },
   "license": "MIT",
